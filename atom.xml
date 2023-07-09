@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+    <id>https://TravelMoonproMax.github.io</id>
+    <title>XC_084</title>
+    <updated>2023-07-09T12:57:07.360Z</updated>
+    <generator>https://github.com/jpmonette/feed</generator>
+    <link rel="alternate" href="https://TravelMoonproMax.github.io"/>
+    <link rel="self" href="https://TravelMoonproMax.github.io/atom.xml"/>
+    <subtitle>😶‍🌫️</subtitle>
+    <logo>https://TravelMoonproMax.github.io/images/avatar.png</logo>
+    <icon>https://TravelMoonproMax.github.io/favicon.ico</icon>
+    <rights>All rights reserved 2023, XC_084</rights>
+    <entry>
+        <title type="html"><![CDATA[白嫖网盘＋图床]]></title>
+        <id>https://TravelMoonproMax.github.io/post/unleashed-icy-crowley.glitch.me/</id>
+        <link href="https://TravelMoonproMax.github.io/post/unleashed-icy-crowley.glitch.me/">
+        </link>
+        <updated>2023-07-06T02:55:40.000Z</updated>
+        <content type="html"><![CDATA[<p>为了搞E5订阅所以整了一个网盘;</p>
+<h3 id="网盘项目的地址是-httpsgithubcomqkqpttgfonemanager-php">网盘项目的地址是 https://github.com/qkqpttgf/OneManager-php</h3>
+<p>实现目的:利用onemanager托管到Glitch(免费)可实现挂载多个网盘,通过网站直接去访问网盘的文件,可以实现直链下载,网页在线观看视频等功能.<br>
+目前支持的网盘有:onedrive|onedriveCN,阿里云盘,百度网盘,谷歌云.</p>
+<p>下面是具体的白嫖步骤：</p>
+<h2 id="一-以github账号登陆glitch">一、以github账号登陆Glitch</h2>
+<h4 id="1glitch官网-httpsglitchcom">1.Glitch官网： https://glitch.com/</h4>
+<h4 id="2登陆方式选择github账号登陆">2.登陆方式选择github账号登陆</h4>
+<blockquote>
+<p>一个很棒的免费项目托管网站,在不用的时候会自动停止,用的时候自动重启,重启大概十几秒</p>
+</blockquote>
+<h2 id="二-新建项目">二、新建项目</h2>
+<h4 id="1登陆后点击右上角的new-project创建项目">1.登陆后，点击右上角的'New project'创建项目。</h4>
+<h4 id="2创建方式选择从github中导入点击import-from-github">2.创建方式选择从github中导入,点击'Import from GitHub'</h4>
+<h4 id="3添加链接-httpsgithubcomqkqpttgfonemanager-php">3.添加链接 https://github.com/qkqpttgf/OneManager-php ;</h4>
+<h4 id="4等待项目构建完成">4.等待项目构建完成;</h4>
+<h4 id="5点击页面下方的previer选择preview-in-a-new-window在新窗口打开预览">5.点击页面下方的🔎PREVIER选择Preview in a new window，在新窗口打开预览.</h4>
+<blockquote>
+<p>新窗口打开的链接就是你的网盘链接</p>
+</blockquote>
+<h2 id="三-配置网盘">三、配置网盘</h2>
+<h4 id="1这里以onedrive1为例点击开始安装程序">1.这里以OneDrive<a href="#1%E5%9B%A0%E4%B8%BA%E6%98%AF%E4%B8%BA%E4%BA%86%E9%85%8D%E5%90%88%E5%BE%AE%E8%BD%AF365%E7%9A%84%E5%BC%80%E5%8F%91%E4%BA%BA%E5%91%98%E8%AE%A1%E5%88%92e5%E8%AE%A2%E9%98%85%E6%89%80%E4%BB%A5%E9%80%89%E7%94%A8onedrive%EF%B8%8F%E4%BD%BF%E7%94%A8%E6%AD%A4%E6%96%B9%E6%B3%95%E5%B9%B6%E4%B8%8D%E8%83%BD%E4%BF%9D%E8%AF%81%E4%BD%A0%E7%9A%84%E5%BE%AE%E8%BD%AF%E5%BC%80%E5%8F%91%E8%80%85%E8%AE%A1%E5%88%92%E4%B8%80%E5%AE%9A%E8%83%BD%E7%BB%AD%E6%9C%9F%E6%88%90%E5%8A%9F">¹</a>为例,点击开始安装程序;</h4>
+<h4 id="2语言不出意外大家都是简体中文">2.语言,不出意外大家都是简体中文;</h4>
+<h4 id="3设置管理密码忘掉就完蛋了-2">3.设置管理密码,忘掉就完蛋了! <a href="#2%E5%BF%98%E8%AE%B0%E5%AF%86%E7%A0%81%E8%87%AA%E8%A1%8C%E5%AF%BB%E6%89%BE%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6%E5%AF%86%E7%A0%81%E6%98%AF%E6%98%8E%E6%96%87%E5%82%A8%E5%AD%98%E7%9A%84">²</a></h4>
+<h4 id="4然后右上角登录后再次点击右上角管理-设置">4.然后右上角登录后,再次点击右上角管理-设置;</h4>
+<h4 id="5默认就是onedrive网盘点击添加盘">5.默认就是OneDrive网盘,点击添加盘;</h4>
+<h4 id="6取名选择适合自己的添加方式">6.取名,选择适合自己的添加方式;</h4>
+<p>默认就是MS:国际版(商业版与个人版)E5订阅属于国际商业版(<s>不会有人不知道吧</s>),确认;</p>
+<h4 id="7登录你的开发者账号授权">7.登录你的开发者账号,授权;</h4>
+<h4 id="8选择共享的文件范围默认是全部">8.选择共享的文件范围,默认是全部;</h4>
+<h4 id="9添加成功">9.添加成功.</h4>
+<p>在onemanager后台管理已经可以看到你添加的盘了,后续还可以在设置中配置相关的内容，达到美化的效果.</p>
+<h2 id="一些说明">一些说明:</h2>
+<p><a href="https://unleashed-icy-crowley.glitch.me/">这里</a>是我配的半成品盘,并且以后本站会采用此盘当图床(评论除外)<br>
+由于我实在是懒,所以懒得配图了,如果有配图需要请在评论区或者右下角告诉我.(或许过两天就配了)<br>
+一开始打算直接当公用盘的,但是由于一些隐私设置,游客上传的文件会md5重命名所以就打算直接在朋友之间公开管理密码的方法当公用盘,如有需要请加入<a href="https://qm.qq.com/cgi-bin/qm/qr?k=tpSVwqgEHwiZetRQbIQJsgK6F9b0TWgU&amp;authKey=P6P2mCiqqwIAriQI3gqsj2RvaXhotz3rsuIxvsu4TwCLDadnIHOWh3tJQanEqoSo&amp;noverify=0&amp;personal_qrcode_source=1001">QQ群</a>.</p>
+<p><s>关于配网盘的时候陪朋友聊天:</s></p>
+<blockquote>
+<p>你说得对,但是365可以有25个用户,每个用户最大分配5T的OneDrive,加起来就是125T,加上25T的Sharepoint就是150T,这是一个巨大的,后面忘了</p>
+</blockquote>
+<p>ps:</p>
+<h6 id="1因为是为了配合微软365的开发人员计划e5订阅所以选用onedrive️使用此方法并不能保证你的微软开发者计划一定能续期成功">1.因为是为了配合微软365的开发人员计划E5订阅,所以选用OneDrive,⚠️使用此方法并不能保证你的微软开发者计划一定能续期成功.</h6>
+<h6 id="2忘记密码自行寻找配置文件密码是明文储存的请查看️可能的安全问题警告">2.忘记密码自行寻找配置文件,密码是明文储存的.<a href="#%EF%B8%8F%E5%8F%AF%E8%83%BD%E7%9A%84%E5%AE%89%E5%85%A8%E9%97%AE%E9%A2%98%E8%AD%A6%E5%91%8A">请查看:⚠️可能的安全问题警告</a></h6>
+<h6 id="3貌似阿里云盘现在装不上等修bug吧">3.貌似阿里云盘现在装不上,等修bug吧</h6>
+<h6 id="4游客上传文件会md5重命名并且在上传文件处看不到别人或以前传的文件所以想要实现上传和浏览需要在配置里复制一个相同盘并且改掉浏览盘的上传路径">4.游客上传文件会md5重命名;并且在上传文件处看不到别人或以前传的文件,所以想要实现上传和浏览需要在配置里复制一个相同盘并且改掉浏览盘的上传路径.</h6>
+<h6 id="5-后面忘了~~">5. 后面忘了~~</h6>
+<h1 id="️可能的安全问题警告">⚠️可能的安全问题警告:</h1>
+<p>在GitHub中有未解决的安全性问题,有黑客通过未知手段再未取得密码的情况下更改管理密码并且删除了链接的网盘(<s>除了恶搞什么都没干真的幸运</s>),由于被害人没有说明清楚情况(<s>可能是朋友干的?</s>)所以没有解决.)<br>
+被害人是查了自己的配置文件发现管理密码被改,并且成功用配置文件里的管理密码登上onemanager管理面版.</p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[台虎钳的测绘]]></title>
+        <id>https://TravelMoonproMax.github.io/post/CAD-1/</id>
+        <link href="https://TravelMoonproMax.github.io/post/CAD-1/">
+        </link>
+        <updated>2022-05-16T14:53:20.000Z</updated>
+        <content type="html"><![CDATA[<!-- more -->
+<p>大一时两天摸出来的<s>学术垃圾</s></p>
+<!-- more -->
+<p>可以拿去<s>应付作业</s><br>
+当然,要和我画一样()</p>
+<!-- more -->
+<blockquote>
+<p>里面有装配图和零件图,共九张</p>
+</blockquote>
+<!-- more -->
+<h3 id="装配图">装配图</h3>
+<p>幅面:A3</p>
+<!-- more -->
+<figure data-type="image" tabindex="1"><img src="https://TravelMoonproMax.github.io/post-images/1652789914825.png" alt="" loading="lazy"></figure>
+<!-- more -->
+<h3 id="零件图">零件图</h3>
+<!-- more -->
+<h4 id="固定钳身">固定钳身</h4>
+<p>幅面:A3</p>
+<!-- more -->
+<p><img src="https://TravelMoonproMax.github.io/post-images/1652790066369.png" alt="" loading="lazy"><br>
+第一张</p>
+<!-- more -->
+<h4 id="螺母">螺母</h4>
+<p>幅面:A4</p>
+<!-- more -->
+<p><img src="https://TravelMoonproMax.github.io/post-images/1652790145417.png" alt="" loading="lazy"><br>
+第二张</p>
+<!-- more -->
+<h4 id="垫片">垫片</h4>
+<p>幅面:A4</p>
+<!-- more -->
+<p><img src="https://TravelMoonproMax.github.io/post-images/1652790327721.png" alt="" loading="lazy"><br>
+第三张</p>
+<!-- more -->
+<h4 id="活动钳身">活动钳身</h4>
+<p>幅面:A4</p>
+<!-- more -->
+<p><img src="https://TravelMoonproMax.github.io/post-images/1652790402698.png" alt="" loading="lazy"><br>
+第四张</p>
+<!-- more -->
+<h4 id="螺钉">螺钉</h4>
+<p>幅面:A4</p>
+<!-- more -->
+<p><img src="https://TravelMoonproMax.github.io/post-images/1652790486021.png" alt="" loading="lazy"><br>
+第五张</p>
+<!-- more -->
+<h4 id="沉头螺钉">沉头螺钉</h4>
+<p>幅面:A4</p>
+<!-- more -->
+<p><img src="https://TravelMoonproMax.github.io/post-images/1652790603010.png" alt="" loading="lazy"><br>
+第六张</p>
+<!-- more -->
+<h4 id="钳口">钳口</h4>
+<p>幅面:A4</p>
+<!-- more -->
+<p><img src="https://TravelMoonproMax.github.io/post-images/1652790666346.png" alt="" loading="lazy"><br>
+第七张</p>
+<!-- more -->
+<h4 id="方块螺母">方块螺母</h4>
+<p>幅面:A4</p>
+<!-- more -->
+<p><img src="https://TravelMoonproMax.github.io/post-images/1652790826574.png" alt="" loading="lazy"><br>
+第八张</p>
+<!-- more -->
+<h4 id="螺杆">螺杆</h4>
+<p>幅面:A4</p>
+<!-- more -->
+<p><img src="https://TravelMoonproMax.github.io/post-images/1652790890568.png" alt="" loading="lazy"><br>
+第九张</p>
+<!-- more -->
+<!-- more -->
+<!-- more -->
+<!-- more -->
+<!-- more -->
+<h2 id="网盘链接">网盘链接</h2>
+<p><a href="https://1drv.ms/u/s!AqFJNQ9UCKLfhSiBXw_P2BAVjZ-u">OneDrive</a></p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[纠缠之缘.ipt]]></title>
+        <id>https://TravelMoonproMax.github.io/post/3D-1/</id>
+        <link href="https://TravelMoonproMax.github.io/post/3D-1/">
+        </link>
+        <updated>2022-05-16T12:14:48.000Z</updated>
+        <summary type="html"><![CDATA[<blockquote>
+<p>纠缠之缘的三<s>弟</s>打印文件</p>
+</blockquote>
+]]></summary>
+        <content type="html"><![CDATA[<blockquote>
+<p>纠缠之缘的三<s>弟</s>打印文件</p>
+</blockquote>
+<!-- more -->
+<p>大小随便整的自己调</p>
+<h3 id="注意事项-星尘的获取">注意事项       <s>(星尘的获取)</s></h3>
+<p>拆支撑比较困难<s>会获得大量星尘</s></p>
+<!-- more -->
+<figure data-type="image" tabindex="1"><img src="https://TravelMoonproMax.github.io/post-images/1652789438397.png" alt="" loading="lazy"></figure>
+<!-- more -->
+<h3 id="成品-没去毛刺">成品 <s>(没去毛刺)</s></h3>
+<!-- more -->
+<figure data-type="image" tabindex="2"><img src="https://TravelMoonproMax.github.io/post-images/1652789543496.png" alt="" loading="lazy"></figure>
+<!-- more -->
+<blockquote>
+<p>ps:内部圣晶石是活动件,要固定自己加</p>
+</blockquote>
+<!-- more -->
+<h2 id="网盘链接">网盘链接</h2>
+<p><a href="https://1drv.ms/u/s!AqFJNQ9UCKLfhSnLhFCwd9LsjZHd">OneDrive</a></p>
+<h3 id="史莱姆">史莱姆</h3>
+<figure data-type="image" tabindex="3"><img src="https://TravelMoonproMax.github.io/post-images/1652789473181.jpg" alt="" loading="lazy"></figure>
+]]></content>
+    </entry>
+</feed>
