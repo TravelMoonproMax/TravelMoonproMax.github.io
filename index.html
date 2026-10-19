@@ -2669,7 +2669,7 @@
             <span class="sync-switch" aria-hidden="true"></span>
             <span>自动同步（每 60 秒）</span>
           </label>
-          <p class="sync-hint">支持 Nextcloud、坚果云、群晖等 WebDAV 服务。凭据仅保存在当前浏览器。若提示 <code>Failed to fetch</code>，通常是 WebDAV 未开放浏览器跨域（CORS；坚果云即属于这种情况）：请在运行网页的电脑上执行 <code>python lan-sync-server.py</code>，并在上方“本机代理地址”填写 <code>http://127.0.0.1:8787</code>。</p>
+          <p class="sync-hint" id="sync-webdav-hint">支持 Nextcloud、坚果云、群晖等 WebDAV 服务。凭据仅保存在当前浏览器。若提示 <code>Failed to fetch</code>，通常是 WebDAV 未开放浏览器跨域（CORS；坚果云即属于这种情况）：请在运行网页的电脑上执行 <code>python lan-sync-server.py</code>，并在上方“本机代理地址”填写 <code>http://127.0.0.1:8787</code>。</p>
         </div>
         <div class="sync-actions">
           <button class="btn btn-ghost" type="button" data-sync-action="test">测试连接</button>
@@ -3067,6 +3067,7 @@
       syncSave: $('#sync-save'),
       syncWebdavPane: $('#sync-webdav-pane'),
       syncLanPane: $('#sync-lan-pane'),
+      syncWebdavHint: $('#sync-webdav-hint'),
       syncWebdavUrl: $('#sync-webdav-url'),
       syncWebdavProxy: $('#sync-webdav-proxy'),
       syncWebdavUsername: $('#sync-webdav-username'),
@@ -5453,8 +5454,9 @@
 
   function populateSyncSettings() {
     if (!els.syncWebdavUrl) return;
+    updateSyncEnvironmentHint();
     els.syncWebdavUrl.value = syncConfig.webdav.url || '';
-    els.syncWebdavProxy.value = syncConfig.webdav.proxy || '';
+    els.syncWebdavProxy.value = effectiveWebdavProxy();
     els.syncWebdavUsername.value = syncConfig.webdav.username || '';
     els.syncWebdavPassword.value = syncConfig.webdav.password || '';
     els.syncWebdavPath.value = syncConfig.webdav.path || 'shijie/goals.json';
@@ -5654,9 +5656,28 @@
     return '请求失败（HTTP ' + status + '）';
   }
 
+  function effectiveWebdavProxy() {
+    const configured = String(syncConfig.webdav.proxy || '').trim().replace(/\/+$/, '');
+    if (isDesktopLocalPage() && (!configured || /^https?:\/\/(?:127\.0\.0\.1|localhost)(?::\d+)?$/i.test(configured))) {
+      return window.location.origin;
+    }
+    return configured;
+  }
+
+  function isDesktopLocalPage() {
+    return Boolean(window.__SHIJIE_DESKTOP__) && /^(?:127\.0\.0\.1|localhost|\[::1\])$/i.test(window.location.hostname);
+  }
+
+  function updateSyncEnvironmentHint() {
+    if (!els.syncWebdavHint) return;
+    if (isDesktopLocalPage()) {
+      els.syncWebdavHint.textContent = '当前使用拾阶桌面版，已自动启用内置 WebDAV 代理，云同步请求会经由本机转发，无需额外启动服务。';
+    }
+  }
+
   async function webdavRequest(method, body) {
     const url = buildWebdavUrl();
-    const proxy = (syncConfig.webdav.proxy || '').trim().replace(/\/+$/, '');
+    const proxy = effectiveWebdavProxy();
     if (proxy) {
       let response;
       try {
