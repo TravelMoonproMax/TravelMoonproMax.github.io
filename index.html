@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover, shrink-to-fit=no">
 <meta name="theme-color" content="#f6efe1">
 <meta name="description" content="拾阶 · 支持无限层级、自动汇总进度、时间期限、拖拽排序、单双栏与便签的目标管理工具。">
 <title>拾阶 · 目标进度</title>
@@ -178,6 +178,34 @@
   }
   .app-menu-btn:hover { background: rgba(255,253,248,.7); border-color: var(--line); color: var(--ink); }
   .app-menu-btn .icon { width: 17px; height: 17px; }
+  .sync-btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 34px;
+    padding: 0 10px;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    color: var(--muted);
+    background: transparent;
+    font-size: 11.5px;
+    white-space: nowrap;
+    transition: background .2s ease, border-color .2s ease, color .2s ease;
+  }
+  .sync-btn:hover { background: rgba(255,253,248,.7); border-color: var(--line); color: var(--ink); }
+  .sync-btn .icon { width: 16px; height: 16px; }
+  .sync-dot {
+    width: 6px; height: 6px;
+    display: inline-block;
+    border-radius: 50%;
+    background: #c3bcad;
+    box-shadow: 0 0 0 2px rgba(195, 188, 173, .14);
+    transition: background .2s ease, box-shadow .2s ease;
+  }
+  .sync-btn[data-state="ready"] .sync-dot { background: #8da077; box-shadow: 0 0 0 2px rgba(141, 160, 119, .16); }
+  .sync-btn[data-state="syncing"] .sync-dot { background: var(--warm); animation: dotPulse 1s ease infinite; }
+  .sync-btn[data-state="error"] .sync-dot { background: var(--danger); box-shadow: 0 0 0 2px rgba(174,79,64,.14); }
 
   @keyframes dotPulse {
     0%, 100% { opacity: 1; transform: scale(1); }
@@ -462,13 +490,66 @@
     background: var(--accent);
   }
 
-  .goals-tree { display: flex; flex-direction: column; gap: 16px; }
+  .goals-tree { display: flex; flex-direction: column; gap: 13px; }
   .goals-tree.is-double {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     align-items: start;
   }
   .goals-tree.is-double > .goal-branch:only-child { grid-column: 1 / -1; }
+  .goals-tree.is-kanban {
+    display: flex;
+    flex-direction: row;
+    gap: 16px;
+    padding: 2px 2px 12px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(145, 128, 96, .32) transparent;
+  }
+  .goals-tree.is-kanban > .goal-branch {
+    flex: 0 0 100%;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+  }
+  .goals-tree.is-kanban::-webkit-scrollbar { height: 7px; }
+  .goals-tree.is-kanban::-webkit-scrollbar-thumb { background: rgba(145, 128, 96, .3); border-radius: 999px; }
+  .kanban-nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    margin: 5px 0 2px;
+  }
+  .kanban-arrow {
+    width: 30px; height: 30px;
+    display: grid; place-items: center;
+    flex: none;
+    padding: 0;
+    border: 1px solid var(--line);
+    border-radius: 50%;
+    color: var(--muted);
+    background: rgba(255,253,248,.72);
+  }
+  .kanban-arrow:hover { color: var(--ink); border-color: var(--line-strong); background: #fffdf8; }
+  .kanban-arrow:disabled { opacity: .3; cursor: default; }
+  .kanban-arrow .icon { width: 14px; height: 14px; transform: rotate(90deg); }
+  .kanban-arrow--next .icon { transform: rotate(-90deg); }
+  .kanban-dots { display: flex; align-items: center; gap: 5px; max-width: min(58vw, 520px); overflow-x: auto; scrollbar-width: none; }
+  .kanban-dots::-webkit-scrollbar { display: none; }
+  .kanban-dot {
+    width: 7px; height: 7px;
+    flex: none;
+    padding: 0;
+    border: 0;
+    border-radius: 999px;
+    background: #d6c9b3;
+    transition: width .2s ease, background .2s ease;
+  }
+  .kanban-dot.is-active { width: 21px; background: var(--accent); }
+  .kanban-position { min-width: 34px; color: var(--faint); font-size: 9.5px; text-align: center; font-variant-numeric: tabular-nums; }
   .goal-branch {
     --goal-start: #a9ba91;
     --goal-end: #5b704d;
@@ -480,7 +561,7 @@
   }
   .goal-branch.is-root {
     border: 1px solid rgba(219, 207, 186, .9);
-    border-radius: var(--radius-lg);
+    border-radius: 21px;
     background: rgba(255, 252, 246, .82);
     box-shadow: var(--shadow-card);
     overflow: hidden;
@@ -491,13 +572,13 @@
     position: relative;
     display: flex;
     align-items: flex-start;
-    gap: 13px;
+    gap: 11px;
     min-width: 0;
-    padding: 12px 8px 12px 0;
+    padding: 9px 8px 9px 0;
     border-radius: 15px;
     transition: background .2s ease;
   }
-  .goal-branch.is-root > .goal-row { padding: 22px 24px 18px; gap: 15px; }
+  .goal-branch.is-root > .goal-row { padding: 16px 20px 13px; gap: 12px; }
   .goal-branch.is-root.is-complete > .goal-row { background: linear-gradient(120deg, rgba(245, 248, 239, .62), transparent 70%); }
   .goal-branch:not(.is-root) > .goal-row:hover { background: rgba(246, 237, 221, .5); }
   .goal-lead {
@@ -522,7 +603,7 @@
   .lead-btn:hover { color: var(--accent-strong); border-color: #bfc9b2; background: #f0f3e9; }
   .lead-btn .icon { width: 14px; height: 14px; transition: transform .26s cubic-bezier(.2,.8,.2,1); }
   .lead-btn.is-done { color: var(--accent-strong); background: var(--accent-soft); border-color: #c6d1b8; }
-  .goal-branch.is-root > .goal-row .lead-btn { width: 31px; height: 31px; border-radius: 10px; }
+  .goal-branch.is-root > .goal-row .lead-btn { width: 29px; height: 29px; border-radius: 9px; }
   .goal-branch.is-collapsed > .goal-row .lead-btn .icon { transform: rotate(-90deg); }
   .check-btn {
     width: 29px; height: 29px;
@@ -542,7 +623,7 @@
   .check-btn .icon { width: 15px; height: 15px; stroke-width: 2.4; opacity: 0; transform: scale(.55); transition: opacity .18s ease, transform .2s cubic-bezier(.2,.9,.2,1.25); }
   .check-btn[aria-checked="true"] { background: var(--accent-strong); border-color: var(--accent-strong); box-shadow: 0 4px 10px rgba(80, 101, 71, .16); }
   .check-btn[aria-checked="true"] .icon { opacity: 1; transform: scale(1); }
-  .goal-branch.is-root > .goal-row .check-btn { width: 31px; height: 31px; border-radius: 10px; }
+  .goal-branch.is-root > .goal-row .check-btn { width: 29px; height: 29px; border-radius: 9px; }
   .count-orb {
     --p: 0%;
     position: relative;
@@ -571,37 +652,46 @@
   .count-orb.is-complete { background: conic-gradient(var(--count-accent) 100%, var(--count-accent) 0); }
   .count-orb.is-complete::before { background: #fffaf0; }
   .count-orb.is-complete::after { background: var(--count-accent); }
-  .goal-branch.is-root > .goal-row .count-orb { width: 31px; height: 31px; }
+  .goal-branch.is-root > .goal-row .count-orb { width: 29px; height: 29px; }
 
   .goal-body { flex: 1 1 auto; min-width: 0; }
   .goal-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; min-width: 0; }
   .goal-title-block { min-width: 0; flex: 1; }
   .root-kicker {
     display: block;
-    margin: 0 0 5px;
+    margin: 0 0 3px;
     color: var(--warm);
-    font-size: 9px;
+    font-size: 8.5px;
     font-weight: 700;
-    letter-spacing: .17em;
+    letter-spacing: .15em;
     text-transform: uppercase;
   }
-  .title-line { display: flex; align-items: center; flex-wrap: wrap; gap: 7px; min-width: 0; }
+  .title-line { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; min-width: 0; }
   .goal-title {
     min-width: 0;
     margin: 0;
+    padding: 0;
+    border: 0;
     color: var(--ink-soft);
-    font-size: 14.5px;
+    background: transparent;
+    font-family: inherit;
+    font-size: 13.5px;
     font-weight: 600;
-    line-height: 1.5;
+    line-height: 1.45;
     letter-spacing: -.005em;
+    text-align: left;
     overflow-wrap: anywhere;
+    cursor: pointer;
+    transition: color .16s ease;
   }
+  .goal-title:hover { color: var(--accent-strong); }
+  .goal-title:focus-visible { outline: 2px solid #8da077; outline-offset: 3px; border-radius: 4px; }
   .goal-branch.is-root > .goal-row .goal-title {
     color: var(--ink);
     font-family: var(--serif);
-    font-size: 21px;
+    font-size: 18.5px;
     font-weight: 600;
-    line-height: 1.36;
+    line-height: 1.32;
     letter-spacing: -.018em;
   }
   .goal-branch.is-complete > .goal-row .goal-title { color: #5e6d54; }
@@ -611,18 +701,26 @@
     align-items: center;
     gap: 3px;
     flex: none;
-    padding: 2.5px 7px;
+    padding: 2px 6px;
     border-radius: 999px;
-    font-size: 9px;
+    font-size: 8.5px;
     font-weight: 700;
     line-height: 1.3;
     letter-spacing: .03em;
     white-space: nowrap;
   }
-  .badge .icon { width: 10px; height: 10px; stroke-width: 2.5; }
+  .badge .icon { width: 9px; height: 9px; stroke-width: 2.5; }
   .badge-auto { color: #586d4d; background: var(--accent-soft); }
   .badge-count { color: #9c5f41; background: var(--warm-soft); }
   .badge-done { color: #4d6543; background: #dfe9d5; }
+  .goal-emoji {
+    display: inline-block;
+    margin-right: 5px;
+    font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+    font-size: 1.04em;
+    line-height: 1;
+    vertical-align: -.04em;
+  }
 
   .deadline {
     display: inline-flex;
@@ -668,14 +766,14 @@
     display: flex;
     align-items: center;
     flex-wrap: wrap;
-    gap: 8px 10px;
-    margin-top: 6px;
-    min-height: 20px;
+    gap: 5px 8px;
+    margin-top: 3px;
+    min-height: 17px;
   }
   .goal-meta {
     color: var(--muted);
-    font-size: 11px;
-    line-height: 1.5;
+    font-size: 10.5px;
+    line-height: 1.45;
     font-variant-numeric: tabular-nums;
   }
   .goal-aside {
@@ -689,20 +787,20 @@
     display: inline-flex;
     align-items: baseline;
     justify-content: flex-end;
-    min-width: 46px;
+    min-width: 42px;
     padding-top: 0;
     color: var(--goal-dark);
     font-family: var(--serif);
-    font-size: 21px;
+    font-size: 19px;
     font-weight: 600;
     line-height: 1.2;
     letter-spacing: -.035em;
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
   }
-  .percent small { margin-left: 1px; color: var(--muted); font-family: var(--sans); font-size: 9px; font-weight: 600; letter-spacing: 0; }
-  .goal-branch.is-root > .goal-row .percent { min-width: 55px; font-size: 28px; }
-  .goal-branch.is-root > .goal-row .percent small { font-size: 10px; }
+  .percent small { margin-left: 1px; color: var(--muted); font-family: var(--sans); font-size: 8.5px; font-weight: 600; letter-spacing: 0; }
+  .goal-branch.is-root > .goal-row .percent { min-width: 48px; font-size: 24px; }
+  .goal-branch.is-root > .goal-row .percent small { font-size: 9px; }
   .goal-branch.is-complete > .goal-row .percent { color: var(--goal-dark); }
   .row-actions { display: flex; align-items: center; gap: 1px; opacity: 0; transform: translateY(-1px); transition: opacity .18s ease; }
   .goal-row:hover .row-actions,
@@ -712,14 +810,14 @@
 
   .progress-track {
     position: relative;
-    height: 8px;
-    margin-top: 11px;
+    height: 7px;
+    margin-top: 8px;
     border-radius: 999px;
     background: #ede3d2;
     overflow: hidden;
     box-shadow: inset 0 1px 2px rgba(102, 82, 43, .07);
   }
-  .goal-branch.is-root > .goal-row .progress-track { height: 9px; margin-top: 13px; }
+  .goal-branch.is-root > .goal-row .progress-track { height: 8px; margin-top: 10px; }
   .progress-fill {
     position: absolute;
     inset: 0 auto 0 0;
@@ -820,21 +918,21 @@
   }
   .goal-branch.is-root > .goal-children {
     margin-left: 0;
-    padding: 5px 24px 15px 48px;
+    padding: 2px 20px 10px 40px;
     border-left: 0;
     border-top: 1px solid rgba(228, 216, 197, .78);
     background: linear-gradient(180deg, rgba(248, 241, 229, .4), rgba(251, 246, 237, .1));
   }
   .goal-branch.is-root.is-collapsed { overflow: hidden; }
   .goal-children > .goal-branch + .goal-branch { border-top: 1px solid rgba(225, 213, 194, .58); }
-  .goal-branch:not(.is-root) > .goal-row { padding-top: 10px; padding-bottom: 10px; }
-  .goal-branch:not(.is-root) > .goal-children { margin-top: 1px; margin-bottom: 4px; }
+  .goal-branch:not(.is-root) > .goal-row { padding-top: 7px; padding-bottom: 7px; }
+  .goal-branch:not(.is-root) > .goal-children { margin-top: 0; margin-bottom: 2px; }
 
   .stepper {
     display: inline-flex;
     align-items: center;
     gap: 1px;
-    padding: 2px;
+    padding: 1px;
     border: 1px solid rgba(219, 204, 179, .9);
     border-radius: 999px;
     background: rgba(248, 241, 229, .78);
@@ -842,7 +940,7 @@
     user-select: none;
   }
   .stepper button {
-    width: 24px; height: 24px;
+    width: 21px; height: 21px;
     display: grid;
     place-items: center;
     flex: none;
@@ -918,6 +1016,7 @@
     display: grid;
     grid-template-columns: 224px minmax(0, 1fr);
     gap: 28px;
+    height: 218px;
     margin: 0 0 38px;
     padding: 24px 26px 25px;
     border: 1px solid rgba(222, 205, 157, .9);
@@ -927,6 +1026,7 @@
       repeating-linear-gradient(180deg, transparent 0 31px, rgba(171, 142, 83, .11) 31px 32px),
       linear-gradient(145deg, #fcf4d9, #f8edc9);
     box-shadow: 0 16px 38px rgba(101, 80, 38, .07), inset 0 1px 0 rgba(255,255,255,.65);
+    overflow: visible;
   }
   .note-card::before {
     content: "";
@@ -942,7 +1042,14 @@
     box-shadow: 0 2px 5px rgba(115, 95, 52, .05);
     pointer-events: none;
   }
-  .note-intro { position: relative; min-width: 0; padding: 2px 3px 0 8px; }
+  .note-intro {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    min-width: 0;
+    padding: 2px 3px 0 8px;
+  }
   .note-kicker {
     display: block;
     margin-bottom: 6px;
@@ -972,7 +1079,8 @@
     display: inline-flex;
     align-items: center;
     gap: 5px;
-    margin-top: 17px;
+    margin-top: auto;
+    padding-top: 14px;
     color: #a29475;
     font-size: 9.5px;
   }
@@ -982,12 +1090,13 @@
     border-radius: 50%;
     background: #a6b18e;
   }
-  .note-main { min-width: 0; display: flex; flex-direction: column; }
+  .note-main { min-width: 0; min-height: 0; display: flex; flex-direction: column; }
   .note-toolbar {
     display: flex;
     align-items: center;
     flex-wrap: wrap;
     gap: 4px;
+    flex: none;
     min-height: 34px;
     margin-bottom: 7px;
   }
@@ -1016,7 +1125,8 @@
   .note-toolbar-sep { width: 1px; height: 17px; margin: 0 3px; background: rgba(185, 163, 111, .36); }
   .note-hint { margin-left: auto; color: #ad9f80; font-size: 9px; white-space: nowrap; }
   .note-editor {
-    min-height: 119px;
+    flex: 1 1 auto;
+    min-height: 0;
     padding: 4px 8px 3px 9px;
     border: 1px solid transparent;
     border-radius: 10px;
@@ -1026,6 +1136,10 @@
     line-height: 2.46;
     word-break: break-word;
     overflow-wrap: anywhere;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(161, 142, 102, .35) transparent;
     transition: border-color .18s ease, background .18s ease, box-shadow .18s ease;
   }
   .note-editor:focus {
@@ -1129,6 +1243,8 @@
   }
   .display-setting-head span:last-child { color: var(--faint); font-size: 9px; font-weight: 400; letter-spacing: 0; }
   .display-options { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .display-options--three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .display-options--three .display-option { justify-content: center; padding-left: 4px !important; padding-right: 4px !important; }
   .display-option {
     display: flex !important;
     align-items: center;
@@ -1195,6 +1311,218 @@
     overflow: hidden;
   }
   .modal--confirm { width: min(430px, 100%); }
+  .modal--sync { width: min(590px, 100%); }
+  .sync-tabs {
+    display: flex;
+    gap: 5px;
+    margin: 17px 26px 0;
+    padding: 3px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: #f6efe2;
+    flex: none;
+  }
+  .sync-tab {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 34px;
+    padding: 0 10px;
+    border: 1px solid transparent;
+    border-radius: 9px;
+    color: var(--muted);
+    background: transparent;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .sync-tab .icon { width: 15px; height: 15px; }
+  .sync-tab:hover { color: var(--ink); }
+  .sync-tab.is-active { color: var(--ink); background: #fffdf8; border-color: rgba(219, 205, 181, .9); box-shadow: 0 2px 6px rgba(90, 70, 35, .05); }
+  .sync-pane { display: flex; flex-direction: column; }
+  .sync-section {
+    padding: 14px;
+    border: 1px solid rgba(226, 214, 194, .9);
+    border-radius: 14px;
+    background: rgba(251, 247, 238, .62);
+  }
+  .sync-field { margin-bottom: 11px; }
+  .sync-field:last-child { margin-bottom: 0; }
+  .sync-field label { display: block; margin-bottom: 5px; color: var(--muted); font-size: 10px; font-weight: 700; }
+  .sync-field .text-input { min-height: 38px; padding: 8px 11px; font-size: 12px; border-radius: 10px; }
+  .sync-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+  .sync-auto {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
+    color: var(--ink-soft);
+    font-size: 11px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .sync-auto input { position: absolute; opacity: 0; width: 1px; height: 1px; pointer-events: none; }
+  .sync-switch {
+    position: relative;
+    width: 36px; height: 20px;
+    flex: none;
+    border-radius: 999px;
+    background: #ddd2be;
+    transition: background .18s ease;
+  }
+  .sync-switch::after {
+    content: "";
+    position: absolute;
+    top: 2px; left: 2px;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: #fffdf8;
+    box-shadow: 0 1px 3px rgba(70, 57, 31, .18);
+    transition: transform .18s ease;
+  }
+  .sync-auto input:checked + .sync-switch { background: var(--accent); }
+  .sync-auto input:checked + .sync-switch::after { transform: translateX(16px); }
+  .sync-auto input:focus-visible + .sync-switch { outline: 2px solid #8da077; outline-offset: 2px; }
+  .sync-hint { margin: 9px 0 0; color: var(--faint); font-size: 9.5px; line-height: 1.7; }
+  .sync-hint code {
+    padding: 1px 4px;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    color: var(--muted);
+    background: #fffdf8;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 9px;
+    overflow-wrap: anywhere;
+  }
+  .sync-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+    margin-top: 14px;
+  }
+  .sync-actions .btn { min-height: 38px; padding: 0 9px; font-size: 11px; }
+  .sync-actions .btn:disabled { opacity: .45; cursor: default; }
+  .sync-status {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin-top: 15px;
+    padding: 10px 12px;
+    border: 1px solid rgba(225, 214, 195, .8);
+    border-radius: 11px;
+    color: var(--muted);
+    background: #faf5ea;
+    font-size: 10.5px;
+    line-height: 1.65;
+  }
+  .sync-status-dot {
+    width: 7px; height: 7px;
+    flex: none;
+    margin-top: 5px;
+    border-radius: 50%;
+    background: #bdb5a5;
+  }
+  .sync-status[data-state="success"] { color: #56694b; border-color: #d9e2cf; background: #f3f7ed; }
+  .sync-status[data-state="success"] .sync-status-dot { background: #7f956d; }
+  .sync-status[data-state="error"] { color: var(--danger); border-color: #ecd5ce; background: #fbefeb; }
+  .sync-status[data-state="error"] .sync-status-dot { background: var(--danger); }
+  .sync-status[data-state="working"] { color: #8c6244; border-color: #eadbc9; background: #fbf4e9; }
+  .sync-status[data-state="working"] .sync-status-dot { background: var(--warm); animation: dotPulse 1s ease infinite; }
+  .sync-footnote { margin: 12px 0 0; color: var(--faint); font-size: 9px; line-height: 1.65; }
+
+  .modal-root.modal-root--detail { z-index: 76; }
+  .modal--detail { width: min(760px, 100%); max-height: min(90vh, 900px); }
+  .detail-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 22px 24px 12px;
+    flex: none;
+  }
+  .detail-head-main { min-width: 0; flex: 1; }
+  .detail-topline { display: flex; align-items: center; gap: 9px; min-height: 24px; margin-bottom: 4px; }
+  .detail-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 7px 3px 5px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    color: var(--muted);
+    background: #fbf7ee;
+    font-size: 9.5px;
+  }
+  .detail-back:hover { color: var(--ink); border-color: var(--line-strong); background: #fffdf8; }
+  .detail-back .icon { width: 12px; height: 12px; transform: rotate(90deg); }
+  .detail-kicker { color: var(--warm); font-size: 9px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; }
+  .detail-title {
+    margin: 0;
+    color: var(--ink);
+    font-family: var(--serif);
+    font-size: 26px;
+    font-weight: 600;
+    line-height: 1.32;
+    letter-spacing: -.02em;
+    overflow-wrap: anywhere;
+  }
+  .detail-meta-line { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 10px; margin-top: 5px; color: var(--muted); font-size: 10.5px; }
+  .detail-percent {
+    flex: none;
+    padding-top: 2px;
+    color: var(--goal-dark, var(--accent-strong));
+    font-family: var(--serif);
+    font-size: 30px;
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: -.035em;
+    font-variant-numeric: tabular-nums;
+  }
+  .detail-percent small { margin-left: 1px; font-family: var(--sans); color: var(--muted); font-size: 9px; }
+  .detail-progress-line {
+    height: 7px;
+    flex: none;
+    margin: 0 24px 3px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: #ede3d2;
+    box-shadow: inset 0 1px 2px rgba(102, 82, 43, .07);
+  }
+  .detail-progress-fill {
+    height: 100%;
+    width: 0;
+    border-radius: inherit;
+    background: linear-gradient(90deg, var(--goal-start, #a9ba91), var(--goal-end, #5b704d));
+    transition: width .55s cubic-bezier(.22,.85,.25,1);
+  }
+  .detail-body { flex: 1; min-height: 0; padding: 12px 20px 18px; overflow-y: auto; }
+  .detail-tree-wrap {
+    min-height: 180px;
+    padding: 4px 13px;
+    border: 1px solid rgba(226, 215, 197, .8);
+    border-radius: 16px;
+    background: rgba(251, 247, 238, .62);
+  }
+  .detail-tree { display: flex; flex-direction: column; }
+  .detail-tree > .goal-branch + .goal-branch { border-top: 1px solid rgba(225, 213, 194, .65); }
+  .detail-tree .goal-row { border-radius: 12px; }
+  .detail-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 170px;
+    color: var(--faint);
+    font-size: 12px;
+    text-align: center;
+  }
+  .detail-empty .icon { width: 25px; height: 25px; color: #b7ad96; }
+  .detail-footer { flex: none; justify-content: space-between; gap: 12px; }
+  .detail-footer-hint { color: var(--faint); font-size: 9.5px; }
+  .detail-footer-actions { display: flex; align-items: center; gap: 8px; }
+  .detail-footer .btn { min-height: 38px; }
+  .detail-tree .goal-title { font-size: 13.5px; }
   .modal-header {
     display: flex;
     align-items: flex-start;
@@ -1440,8 +1768,93 @@
   }
 
   .date-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+  .date-trigger {
+    width: 100%;
+    min-height: 43px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    color: #aaa294;
+    background: #fbf7ee;
+    font-size: 12.5px;
+    text-align: left;
+    transition: border-color .18s ease, background .18s ease, box-shadow .18s ease, color .18s ease;
+  }
+  .date-trigger:hover { border-color: #cfc1a8; background: #fffdf8; color: var(--muted); }
+  .date-trigger:focus-visible { outline: none; border-color: #b8c7a9; box-shadow: 0 0 0 4px rgba(109, 129, 91, .09); }
+  .date-trigger.is-set { color: var(--ink-soft); }
+  .date-trigger .icon { width: 15px; height: 15px; color: var(--muted); }
+  .date-popover {
+    position: fixed;
+    z-index: 145;
+    width: 314px;
+    padding: 13px 13px 11px;
+    border: 1px solid rgba(214, 200, 174, .95);
+    border-radius: 18px;
+    background: #fffdf8;
+    box-shadow: 0 24px 65px rgba(55, 45, 26, .22);
+    animation: popIn .16s cubic-bezier(.2,.9,.25,1.1);
+  }
+  .date-pop-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 9px; }
+  .date-pop-title { font-family: var(--serif); color: var(--ink); font-size: 15px; font-weight: 600; letter-spacing: -.01em; }
+  .date-nav {
+    width: 28px; height: 28px;
+    display: grid; place-items: center;
+    padding: 0;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    color: var(--muted);
+    background: transparent;
+  }
+  .date-nav:hover { color: var(--ink); background: #f5eddf; border-color: var(--line); }
+  .date-nav .icon { width: 14px; height: 14px; }
+  .date-nav--prev .icon { transform: rotate(90deg); }
+  .date-nav--next .icon { transform: rotate(-90deg); }
+  .date-weekdays, .date-days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+  .date-weekdays { margin-bottom: 4px; }
+  .date-weekday { padding: 3px 0; color: var(--faint); font-size: 9px; text-align: center; }
+  .date-day {
+    position: relative;
+    aspect-ratio: 1;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    border: 1px solid transparent;
+    border-radius: 9px;
+    color: var(--ink-soft);
+    background: transparent;
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+    transition: background .14s ease, color .14s ease, border-color .14s ease;
+  }
+  .date-day:hover { background: #f4ecdd; border-color: #e2d5bf; }
+  .date-day.is-other { color: #c3bbaa; }
+  .date-day.is-today { border-color: #c8d2bc; color: var(--accent-strong); font-weight: 700; }
+  .date-day.is-selected { color: #fffdf8; background: var(--accent-strong); border-color: var(--accent-strong); font-weight: 700; }
+  .date-day.is-selected:hover { background: var(--accent-deep); border-color: var(--accent-deep); }
+  .date-pop-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 9px;
+    padding-top: 9px;
+    border-top: 1px solid rgba(228, 217, 199, .75);
+  }
+  .date-today-btn {
+    padding: 5px 11px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    color: var(--ink-soft);
+    background: #fbf7ee;
+    font-size: 10px;
+  }
+  .date-today-btn:hover { background: #f4ecdd; border-color: var(--line-strong); }
   .date-input { color-scheme: light; padding-right: 9px; }
-  .date-input::-webkit-calendar-picker-indicator { opacity: .55; cursor: pointer; }
   .date-actions {
     display: flex;
     align-items: flex-start;
@@ -1509,10 +1922,115 @@
     opacity: 0;
     cursor: pointer;
   }
+  .custom-color-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0;
+    border: 0;
+    color: var(--muted);
+    background: transparent;
+    font-size: 9.5px;
+  }
+  .custom-color-btn:hover { color: var(--ink-soft); }
+  .custom-color-btn .color-swatch { width: 26px; height: 26px; }
+  .custom-color-btn:focus-visible { outline: 2px solid #8da077; outline-offset: 3px; border-radius: 999px; }
+  .color-popover {
+    position: fixed;
+    z-index: 146;
+    width: 290px;
+    padding: 14px;
+    border: 1px solid rgba(214, 200, 174, .95);
+    border-radius: 18px;
+    background: #fffdf8;
+    box-shadow: 0 24px 65px rgba(55, 45, 26, .22);
+    animation: popIn .16s cubic-bezier(.2,.9,.25,1.1);
+  }
+  .color-pop-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+  .color-pop-title { font-family: var(--serif); color: var(--ink); font-size: 15px; font-weight: 600; }
+  .color-pop-preview {
+    width: 34px; height: 34px;
+    flex: none;
+    border-radius: 50%;
+    background: #6d815b;
+    border: 1px solid rgba(90, 85, 65, .12);
+    box-shadow: 0 0 0 3px #fffdf8, 0 0 0 4px rgba(155, 143, 117, .4);
+  }
+  .color-slider-row {
+    display: grid;
+    grid-template-columns: 30px minmax(0, 1fr) 28px;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 9px;
+  }
+  .color-slider-row label { color: var(--muted); font-size: 10px; }
+  .color-slider-value { color: var(--faint); font-size: 9px; text-align: right; font-variant-numeric: tabular-nums; }
+  .color-slider {
+    width: 100%;
+    height: 18px;
+    margin: 0;
+    appearance: none;
+    background: transparent;
+    cursor: pointer;
+  }
+  .color-slider::-webkit-slider-runnable-track {
+    height: 7px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #d9d1bf, #e3d2a9);
+  }
+  .color-slider--hue::-webkit-slider-runnable-track {
+    background: linear-gradient(90deg, #d95959 0%, #d9c559 17%, #75c75d 33%, #5dc7b3 50%, #5d8bc7 67%, #9a5dc7 83%, #d95959 100%);
+  }
+  .color-slider::-webkit-slider-thumb {
+    appearance: none;
+    width: 15px; height: 15px;
+    margin-top: -4px;
+    border: 2px solid #fffdf8;
+    border-radius: 50%;
+    background: var(--slider-thumb, #6d815b);
+    box-shadow: 0 2px 6px rgba(68, 55, 30, .22);
+  }
+  .color-slider::-moz-range-track { height: 7px; border-radius: 999px; background: #e3d2a9; }
+  .color-slider::-moz-range-thumb { width: 13px; height: 13px; border: 2px solid #fffdf8; border-radius: 50%; background: #6d815b; }
+  .color-hex-row {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin-top: 11px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(228, 217, 199, .75);
+  }
+  .color-hex-label { color: var(--muted); font-size: 10px; }
+  .color-hex-input { min-height: 34px; padding: 6px 9px; font-size: 11px; letter-spacing: .03em; }
+  .color-pop-foot { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; }
+  .color-pop-foot .btn { min-height: 34px; padding: 0 13px; font-size: 11px; }
   .custom-color .color-swatch { width: 26px; height: 26px; }
   .custom-color:focus-within .color-swatch { box-shadow: 0 0 0 2px #fffdf8, 0 0 0 4px #8da077; }
   .custom-color .selected-color-dot { box-shadow: 0 0 0 2px #fffdf8, 0 0 0 4px #5f604f; }
   .color-help { margin: 7px 0 0; color: var(--faint); font-size: 9.5px; line-height: 1.6; }
+  .emoji-input-row { display: flex; align-items: center; gap: 10px; }
+  .emoji-input-row .text-input {
+    max-width: 150px;
+    font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", var(--sans);
+    font-size: 18px;
+    text-align: center;
+  }
+  .emoji-suggestions { display: flex; flex-wrap: wrap; gap: 5px; }
+  .emoji-chip {
+    width: 30px; height: 30px;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    background: #fbf7ee;
+    font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+    font-size: 16px;
+    line-height: 1;
+    transition: background .16s ease, border-color .16s ease, transform .16s ease;
+  }
+  .emoji-chip:hover { background: #f2ecdf; border-color: #cfc1a9; transform: translateY(-1px); }
+  .emoji-chip--clear { color: var(--faint); font-family: var(--sans); font-size: 9px; }
   .edit-advanced-note {
     margin: 15px 0 0;
     padding-top: 12px;
@@ -1598,12 +2116,17 @@
     .goal-children { margin-left: 9px; padding-left: 10px; }
     .row-actions { opacity: 1; }
     .goal-row { gap: 10px; }
-    .note-card { grid-template-columns: 1fr; gap: 15px; padding: 22px 20px 20px; }
+    .note-card {
+      grid-template-columns: 1fr;
+      grid-template-rows: auto minmax(0, 1fr);
+      height: 318px;
+      gap: 10px;
+      padding: 22px 20px 20px;
+    }
     .note-intro { padding-left: 4px; }
-    .note-desc { max-width: none; margin-top: 5px; }
-    .note-saved { margin-top: 9px; }
+    .note-saved { margin-top: 7px; padding-top: 0; }
     .note-toolbar { margin-bottom: 4px; }
-    .note-editor { min-height: 105px; padding-left: 7px; }
+    .note-editor { min-height: 0; padding-left: 7px; }
     .modal-header { padding: 20px 20px 0; }
     .modal-body { padding-left: 20px; padding-right: 20px; }
     .modal-footer { padding: 14px 20px calc(16px + env(safe-area-inset-bottom)); }
@@ -1620,6 +2143,9 @@
     .brand-name { font-size: 18px; }
     .brand-sub { font-size: 7.5px; margin-top: 4px; }
     .save-status { padding: 6px 8px; font-size: 10px; }
+    .sync-btn { width: 34px; min-height: 34px; padding: 0; justify-content: center; }
+    .sync-btn > span { display: none; }
+    .sync-btn .sync-dot { position: absolute; top: 8px; right: 8px; margin: 0; width: 5px; height: 5px; }
     .app-menu-btn { width: 34px; min-height: 34px; padding: 0; justify-content: center; }
     .app-menu-btn span { display: none; }
     .app-shell { padding: 0 14px 38px; }
@@ -1642,12 +2168,11 @@
     .section-actions .btn-primary { width: 100%; min-height: 42px; grid-column: 1 / -1; }
     .section-actions .btn-ghost { min-height: 38px; }
     .section-sub { font-size: 11px; }
-    .note-card { padding: 20px 16px 18px; margin-bottom: 30px; border-radius: 20px; }
+    .note-card { height: 298px; padding: 20px 16px 18px; margin-bottom: 30px; border-radius: 20px; }
     .note-card::before { width: 74px; height: 18px; }
     .note-title { font-size: 23px; }
-    .note-desc { font-size: 11px; }
     .note-hint { display: none; }
-    .note-editor { font-size: 12.5px; line-height: 2.56; min-height: 100px; }
+    .note-editor { font-size: 12.5px; line-height: 2.56; min-height: 0; }
     .goal-branch.is-root { border-radius: 20px; }
     .goal-branch.is-root > .goal-row { padding: 16px 14px 14px; gap: 9px; }
     .goal-branch.is-root > .goal-children { padding: 4px 14px 11px 33px; }
@@ -1693,6 +2218,24 @@
       animation: sheetUp .28s cubic-bezier(.2,.85,.25,1.05);
     }
     .modal--confirm { margin: 0 10px 10px; width: calc(100% - 20px); border-radius: 20px; border-bottom: 1px solid var(--line); }
+    .modal--detail { max-height: 94dvh; }
+    .sync-tabs { margin: 13px 18px 0; }
+    .sync-tab { min-height: 36px; font-size: 11.5px; }
+    .sync-grid-2 { grid-template-columns: 1fr 1fr; }
+    .sync-actions { grid-template-columns: 1fr 1fr; }
+    .sync-actions .btn-primary { grid-column: 1 / -1; }
+    .sync-footnote { font-size: 9.5px; }
+    .detail-head { padding: 16px 16px 10px; gap: 10px; }
+    .detail-title { font-size: 22px; }
+    .detail-percent { font-size: 25px; }
+    .detail-progress-line { margin-left: 16px; margin-right: 16px; }
+    .detail-body { padding: 10px 14px 14px; }
+    .detail-tree-wrap { padding: 3px 9px; }
+    .detail-footer { flex-direction: column; align-items: stretch; gap: 9px; }
+    .detail-footer-hint { display: none; }
+    .detail-footer-actions { width: 100%; display: grid; grid-template-columns: 1fr 1fr; }
+    .detail-footer .btn { width: 100%; }
+    .detail-tree .goal-title { font-size: 13px; }
     .modal-title { font-size: 21px; }
     .modal-header { padding: 17px 18px 0; }
     .modal-body { padding: 15px 18px 6px; }
@@ -1704,8 +2247,26 @@
     .count-fields { grid-template-columns: 1fr 1fr; }
     .count-fields .mini-field:last-child { grid-column: 1 / -1; }
     .date-grid { grid-template-columns: 1fr 1fr; }
+    .date-popover {
+      left: 10px !important;
+      right: 10px !important;
+      top: auto !important;
+      bottom: calc(10px + env(safe-area-inset-bottom));
+      width: auto;
+      border-radius: 20px;
+      animation: sheetUp .24s cubic-bezier(.2,.85,.25,1.05);
+    }
+    .color-popover {
+      left: 10px !important;
+      right: 10px !important;
+      top: auto !important;
+      bottom: calc(10px + env(safe-area-inset-bottom));
+      width: auto;
+      border-radius: 20px;
+      animation: sheetUp .24s cubic-bezier(.2,.85,.25,1.05);
+    }
     .color-swatch { width: 32px; height: 32px; }
-    .custom-color .color-swatch { width: 29px; height: 29px; }
+    .custom-color-btn .color-swatch { width: 29px; height: 29px; }
     .preview-list { max-height: 170px; }
     .popover {
       left: 10px !important;
@@ -1768,12 +2329,16 @@
   <symbol id="i-display" viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h2M10 17h10M14 4v6M10 14v6"/></symbol>
   <symbol id="i-single-col" viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="16" rx="2.5"/><path d="M5 9h14"/></symbol>
   <symbol id="i-double-col" viewBox="0 0 24 24"><rect x="3.5" y="4" width="7" height="16" rx="2"/><rect x="13.5" y="4" width="7" height="16" rx="2"/></symbol>
+  <symbol id="i-kanban" viewBox="0 0 24 24"><rect x="3" y="4" width="5" height="16" rx="1.6"/><rect x="9.5" y="4" width="5" height="11" rx="1.6"/><rect x="16" y="4" width="5" height="14" rx="1.6"/></symbol>
   <symbol id="i-bar-mode" viewBox="0 0 24 24"><rect x="4" y="6" width="16" height="4" rx="2"/><rect x="4" y="14" width="10" height="4" rx="2"/></symbol>
   <symbol id="i-fill-mode" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M4 12h8" stroke-width="2.2"/></symbol>
   <symbol id="i-highlight" viewBox="0 0 24 24"><path d="m8 14 6.5-8.5a1.8 1.8 0 0 1 2.5-.3l1.8 1.4a1.8 1.8 0 0 1 .3 2.5L12.5 17 8 18l.5-4Z"/><path d="M5 21h14"/></symbol>
   <symbol id="i-list" viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01" stroke-width="2.6"/></symbol>
   <symbol id="i-list-ordered" viewBox="0 0 24 24"><path d="M10 6h10M10 12h10M10 18h10"/><path d="M4 5h1v4M3.5 9h2M3.5 13.5c0-1 .8-1.5 1.6-1.5s1.4.5 1.4 1.2c0 1.3-3 1-3 3.3h3" stroke-width="1.5"/></symbol>
   <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="16" rx="3"/><path d="M8 3v4M16 3v4M3.5 10h17"/></symbol>
+  <symbol id="i-cloud" viewBox="0 0 24 24"><path d="M7 18h10.2a4 4 0 0 0 .5-8 6.2 6.2 0 0 0-11.8 1.2A3.5 3.5 0 0 0 7 18Z"/><path d="M12 12v6m0-6 2 2m-2-2-2 2" stroke-width="1.5"/></symbol>
+  <symbol id="i-server" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="7" rx="2"/><rect x="4" y="13" width="16" height="7" rx="2"/><path d="M8 7.5h.01M8 16.5h.01M12 7.5h5M12 16.5h5"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 7v5h-5M4 17v-5h5"/><path d="M6.1 9a7 7 0 0 1 11.5-2L20 9M4 15l2.4 2A7 7 0 0 0 17.9 15"/></symbol>
 </svg>
 
 <header class="topbar">
@@ -1795,6 +2360,11 @@
         <span class="dot" aria-hidden="true"></span>
         <span id="save-text">本地自动保存</span>
       </span>
+      <button class="sync-btn" id="sync-btn" type="button" aria-haspopup="dialog" aria-expanded="false" aria-label="同步设置" data-state="idle" title="同步设置">
+        <svg class="icon" aria-hidden="true"><use href="#i-cloud"></use></svg>
+        <span>同步</span>
+        <i class="sync-dot" id="sync-dot" aria-hidden="true"></i>
+      </button>
       <button class="app-menu-btn" id="app-menu-btn" type="button" aria-haspopup="menu" aria-expanded="false" aria-label="更多设置">
         <svg class="icon" aria-hidden="true"><use href="#i-dots"></use></svg>
         <span>更多</span>
@@ -1849,7 +2419,6 @@
       <div class="note-intro">
         <span class="note-kicker">Scratchpad</span>
         <h2 class="note-title" id="note-title">便签</h2>
-        <p class="note-desc">随手记下灵感、提醒，或写给自己的话。文字会随目标一起自动保存。</p>
         <span class="note-saved">本地自动保存</span>
       </div>
       <div class="note-main">
@@ -1881,7 +2450,7 @@
         <div class="section-title-wrap">
           <span class="section-kicker">Your Goals</span>
           <h2 class="section-title" id="goals-heading">目标清单</h2>
-          <p class="section-sub">父目标进度自动平均计算 · 拖动右侧手柄可调整位置</p>
+          <p class="section-sub">父目标自动汇总 · 点击目标名进入二级页 · 拖动右侧手柄排序</p>
         </div>
         <div class="section-actions">
           <button class="btn btn-ghost display-btn" id="display-btn" type="button" aria-haspopup="dialog" aria-expanded="false" title="显示设置">
@@ -1900,6 +2469,17 @@
       </div>
 
       <div class="goals-tree" id="goals-tree"></div>
+
+      <div class="kanban-nav" id="kanban-nav" hidden>
+        <button class="kanban-arrow" id="kanban-prev" type="button" aria-label="上一个主目标">
+          <svg class="icon" aria-hidden="true"><use href="#i-chevron"></use></svg>
+        </button>
+        <div class="kanban-dots" id="kanban-dots" aria-label="主目标切换"></div>
+        <span class="kanban-position" id="kanban-position">1 / 1</span>
+        <button class="kanban-arrow kanban-arrow--next" id="kanban-next" type="button" aria-label="下一个主目标">
+          <svg class="icon" aria-hidden="true"><use href="#i-chevron"></use></svg>
+        </button>
+      </div>
 
       <div class="empty-state" id="empty-state" hidden>
         <svg class="empty-art" viewBox="0 0 180 128" fill="none" aria-hidden="true">
@@ -1963,6 +2543,9 @@
 
 <div class="popover" id="app-menu" role="menu" aria-label="更多设置" hidden>
   <div class="popover-label">数据与工具</div>
+  <button type="button" role="menuitem" data-app-action="sync">
+    <svg class="icon" aria-hidden="true"><use href="#i-cloud"></use></svg>WebDAV / 局域网同步
+  </button>
   <button type="button" role="menuitem" data-app-action="export">
     <svg class="icon" aria-hidden="true"><use href="#i-download"></use></svg>导出目标数据
   </button>
@@ -1982,12 +2565,15 @@
   <div class="popover-label">显示设置</div>
   <div class="display-setting">
     <div class="display-setting-head"><span>目标布局</span><span>宽屏两栏并排</span></div>
-    <div class="display-options">
+    <div class="display-options display-options--three">
       <button type="button" class="display-option" data-view="single" aria-pressed="true">
         <svg class="icon" aria-hidden="true"><use href="#i-single-col"></use></svg>单栏
       </button>
       <button type="button" class="display-option" data-view="double" aria-pressed="false">
         <svg class="icon" aria-hidden="true"><use href="#i-double-col"></use></svg>双栏
+      </button>
+      <button type="button" class="display-option" data-view="kanban" aria-pressed="false">
+        <svg class="icon" aria-hidden="true"><use href="#i-kanban"></use></svg>看板
       </button>
     </div>
   </div>
@@ -2002,12 +2588,184 @@
       </button>
     </div>
   </div>
-  <p class="display-hint">双栏视图会在宽屏下生效；卡片着色模式用颜色填充多少来表示进度。</p>
+  <p class="display-hint">双栏在宽屏下并排；看板视图可左右滑动切换主目标。卡片着色会用颜色填充表示进度。</p>
 </div>
 
 <div class="drag-drop-indicator" id="drag-drop-indicator" hidden></div>
 
+<div class="date-popover" id="date-popover" role="dialog" aria-label="选择日期" hidden></div>
+
+<div class="color-popover" id="color-popover" role="dialog" aria-label="自定义颜色" hidden>
+  <div class="color-pop-head">
+    <span class="color-pop-title">自定义颜色</span>
+    <span class="color-pop-preview" id="color-pop-preview" aria-hidden="true"></span>
+  </div>
+  <div class="color-slider-row">
+    <label for="custom-hue">色相</label>
+    <input class="color-slider color-slider--hue" id="custom-hue" type="range" min="0" max="360" step="1" value="105">
+    <span class="color-slider-value" id="custom-hue-value">105</span>
+  </div>
+  <div class="color-slider-row">
+    <label for="custom-saturation">饱和</label>
+    <input class="color-slider" id="custom-saturation" type="range" min="0" max="100" step="1" value="20">
+    <span class="color-slider-value" id="custom-saturation-value">20</span>
+  </div>
+  <div class="color-slider-row">
+    <label for="custom-lightness">明度</label>
+    <input class="color-slider" id="custom-lightness" type="range" min="18" max="86" step="1" value="44">
+    <span class="color-slider-value" id="custom-lightness-value">44</span>
+  </div>
+  <div class="color-hex-row">
+    <span class="color-hex-label">色值</span>
+    <input class="text-input color-hex-input" id="custom-hex" type="text" maxlength="7" spellcheck="false" placeholder="#6d815b">
+  </div>
+  <div class="color-pop-foot">
+    <button class="btn btn-ghost" type="button" id="color-cancel">取消</button>
+    <button class="btn btn-primary" type="button" id="color-apply">应用颜色</button>
+  </div>
+</div>
+
 <input type="file" id="import-file" accept=".json,application/json" hidden>
+
+<div class="modal-root" id="sync-modal" hidden>
+  <div class="modal-backdrop" data-close-sync></div>
+  <div class="modal modal--sync" role="dialog" aria-modal="true" aria-labelledby="sync-title">
+    <div class="modal-header">
+      <div>
+        <span class="modal-kicker">Data Sync</span>
+        <h2 class="modal-title" id="sync-title">同步设置</h2>
+      </div>
+      <button class="icon-btn modal-close" type="button" data-close-sync aria-label="关闭">
+        <svg class="icon" aria-hidden="true"><use href="#i-close"></use></svg>
+      </button>
+    </div>
+    <div class="sync-tabs" role="tablist" aria-label="同步方式">
+      <button class="sync-tab is-active" type="button" role="tab" aria-selected="true" data-sync-tab="webdav">
+        <svg class="icon" aria-hidden="true"><use href="#i-cloud"></use></svg>WebDAV
+      </button>
+      <button class="sync-tab" type="button" role="tab" aria-selected="false" data-sync-tab="lan">
+        <svg class="icon" aria-hidden="true"><use href="#i-server"></use></svg>局域网
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="sync-pane" id="sync-webdav-pane">
+        <div class="sync-section">
+          <div class="sync-field">
+            <label for="sync-webdav-url">服务器地址</label>
+            <input class="text-input" id="sync-webdav-url" type="url" autocomplete="url" placeholder="https://dav.example.com/remote.php/dav/files/name/">
+          </div>
+          <div class="sync-grid-2">
+            <div class="sync-field">
+              <label for="sync-webdav-username">用户名</label>
+              <input class="text-input" id="sync-webdav-username" type="text" autocomplete="username" placeholder="可选">
+            </div>
+            <div class="sync-field">
+              <label for="sync-webdav-password">密码 / 应用密码</label>
+              <input class="text-input" id="sync-webdav-password" type="password" autocomplete="current-password" placeholder="可选">
+            </div>
+          </div>
+          <div class="sync-field">
+            <label for="sync-webdav-path">远程文件路径</label>
+            <input class="text-input" id="sync-webdav-path" type="text" autocomplete="off" placeholder="shijie/goals.json">
+          </div>
+          <label class="sync-auto">
+            <input type="checkbox" id="sync-webdav-auto">
+            <span class="sync-switch" aria-hidden="true"></span>
+            <span>自动同步（每 60 秒）</span>
+          </label>
+          <p class="sync-hint">支持 Nextcloud、坚果云、群晖等 WebDAV 服务。服务器需要允许此页面的跨域请求（CORS）。凭据仅保存在当前浏览器。</p>
+        </div>
+        <div class="sync-actions">
+          <button class="btn btn-ghost" type="button" data-sync-action="test">测试连接</button>
+          <button class="btn btn-ghost" type="button" data-sync-action="pull">下载覆盖</button>
+          <button class="btn btn-primary" type="button" data-sync-action="push">上传同步</button>
+        </div>
+      </div>
+
+      <div class="sync-pane" id="sync-lan-pane" hidden>
+        <div class="sync-section">
+          <div class="sync-field">
+            <label for="sync-lan-url">局域网服务地址</label>
+            <input class="text-input" id="sync-lan-url" type="url" autocomplete="url" placeholder="http://192.168.1.10:8787">
+          </div>
+          <div class="sync-field">
+            <label for="sync-lan-room">同步口令</label>
+            <input class="text-input" id="sync-lan-room" type="text" autocomplete="off" placeholder="同一局域网设备填写相同口令">
+          </div>
+          <label class="sync-auto">
+            <input type="checkbox" id="sync-lan-auto">
+            <span class="sync-switch" aria-hidden="true"></span>
+            <span>自动同步（每 60 秒）</span>
+          </label>
+          <p class="sync-hint">在局域网中的任意电脑运行 <code>python lan-sync-server.py</code>，再将上面的地址改成那台电脑的局域网 IP。口令相同的设备会同步到同一份数据；请仅在可信局域网中使用。</p>
+        </div>
+        <div class="sync-actions">
+          <button class="btn btn-ghost" type="button" data-sync-action="test">测试连接</button>
+          <button class="btn btn-ghost" type="button" data-sync-action="pull">下载覆盖</button>
+          <button class="btn btn-primary" type="button" data-sync-action="push">上传同步</button>
+        </div>
+      </div>
+
+      <div class="sync-status" id="sync-status" data-state="idle">
+        <span class="sync-status-dot" aria-hidden="true"></span>
+        <span id="sync-status-text">尚未配置同步</span>
+      </div>
+      <p class="sync-footnote">手动“下载覆盖”会以远程数据替换本机目标、便签和显示设置；自动同步会在远程版本较新时自动拉取，在本机版本较新时自动上传。</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" type="button" data-close-sync>关闭</button>
+      <button class="btn btn-primary" type="button" id="sync-save">保存设置</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-root modal-root--detail" id="detail-modal" hidden>
+  <div class="modal-backdrop" data-close-detail></div>
+  <div class="modal modal--detail" id="detail-panel" role="dialog" aria-modal="true" aria-labelledby="detail-title" tabindex="-1">
+    <div class="detail-head">
+      <div class="detail-head-main">
+        <div class="detail-topline">
+          <button class="detail-back" id="detail-back" type="button" hidden>
+            <svg class="icon" aria-hidden="true"><use href="#i-chevron"></use></svg>上一级
+          </button>
+          <span class="detail-kicker" id="detail-kicker">目标详情</span>
+        </div>
+        <h2 class="detail-title" id="detail-title">目标</h2>
+        <div class="detail-meta-line">
+          <span id="detail-meta">0 个子目标</span>
+          <span id="detail-deadline"></span>
+        </div>
+      </div>
+      <span class="detail-percent" id="detail-percent">0<small>%</small></span>
+      <button class="icon-btn modal-close" type="button" data-close-detail aria-label="关闭">
+        <svg class="icon" aria-hidden="true"><use href="#i-close"></use></svg>
+      </button>
+    </div>
+    <div class="detail-progress-line" role="progressbar" aria-label="目标进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="detail-progress-track">
+      <div class="detail-progress-fill" id="detail-progress-fill"></div>
+    </div>
+    <div class="modal-body detail-body">
+      <div class="detail-tree-wrap">
+        <div class="detail-tree" id="detail-tree"></div>
+        <div class="detail-empty" id="detail-empty" hidden>
+          <svg class="icon" aria-hidden="true"><use href="#i-spark"></use></svg>
+          <span>这个目标还没有子目标，先拆出第一小步吧。</span>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer detail-footer">
+      <span class="detail-footer-hint">点击子目标名称可继续进入下一级</span>
+      <div class="detail-footer-actions">
+        <button class="btn btn-ghost" id="detail-add" type="button">
+          <svg class="icon" aria-hidden="true"><use href="#i-plus"></use></svg>添加子目标
+        </button>
+        <button class="btn btn-primary" id="detail-edit" type="button">
+          <svg class="icon" aria-hidden="true"><use href="#i-edit"></use></svg>编辑此目标
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <div class="modal-root" id="goal-modal" hidden>
   <div class="modal-backdrop" data-close-goal></div>
@@ -2035,6 +2793,7 @@
             <div class="syntax-guide" aria-label="语法提示">
               <span><b>缩进 / #</b> 自动分层</span>
               <span><b>[x]</b> 已完成</span>
+              <span><b>🌱</b> 自动提取 Emoji</span>
               <span><b>3/10 次</b> 计数型</span>
               <span><b>每行</b> 一个目标</span>
             </div>
@@ -2055,15 +2814,43 @@
             <input class="text-input" id="edit-title" type="text" maxlength="240" autocomplete="off">
           </div>
           <div class="field">
+            <div class="field-label">名称前符号 <small>可选 Emoji</small></div>
+            <div class="emoji-input-row">
+              <input class="text-input" id="edit-emoji" type="text" maxlength="12" autocomplete="off" placeholder="🌱">
+              <div class="emoji-suggestions" id="emoji-suggestions" aria-label="选择 Emoji">
+                <button class="emoji-chip" type="button" data-emoji="🌱" aria-label="幼苗">🌱</button>
+                <button class="emoji-chip" type="button" data-emoji="🎯" aria-label="目标">🎯</button>
+                <button class="emoji-chip" type="button" data-emoji="📚" aria-label="书本">📚</button>
+                <button class="emoji-chip" type="button" data-emoji="💪" aria-label="力量">💪</button>
+                <button class="emoji-chip" type="button" data-emoji="🏃" aria-label="跑步">🏃</button>
+                <button class="emoji-chip" type="button" data-emoji="💡" aria-label="灵感">💡</button>
+                <button class="emoji-chip" type="button" data-emoji="✈️" aria-label="旅行">✈️</button>
+                <button class="emoji-chip" type="button" data-emoji="💰" aria-label="金钱">💰</button>
+                <button class="emoji-chip" type="button" data-emoji="🎨" aria-label="艺术">🎨</button>
+                <button class="emoji-chip" type="button" data-emoji="🏆" aria-label="奖杯">🏆</button>
+                <button class="emoji-chip emoji-chip--clear" type="button" data-emoji="" aria-label="不使用符号">无</button>
+              </div>
+            </div>
+            <p class="field-hint">批量添加时，名称开头的 Emoji 也会被自动识别。</p>
+          </div>
+          <div class="field">
             <div class="field-label">时间期限 <small>选填</small></div>
             <div class="date-grid">
-              <div class="mini-field">
-                <label for="edit-start-date">开始日期</label>
-                <input class="text-input date-input" id="edit-start-date" type="date">
+              <div class="mini-field date-field">
+                <label for="edit-start-date-trigger">开始日期</label>
+                <button class="date-trigger" id="edit-start-date-trigger" type="button" aria-haspopup="dialog">
+                  <span id="edit-start-date-label">选择日期</span>
+                  <svg class="icon" aria-hidden="true"><use href="#i-calendar"></use></svg>
+                </button>
+                <input type="hidden" id="edit-start-date">
               </div>
-              <div class="mini-field">
-                <label for="edit-end-date">结束日期</label>
-                <input class="text-input date-input" id="edit-end-date" type="date">
+              <div class="mini-field date-field">
+                <label for="edit-end-date-trigger">结束日期</label>
+                <button class="date-trigger" id="edit-end-date-trigger" type="button" aria-haspopup="dialog">
+                  <span id="edit-end-date-label">选择日期</span>
+                  <svg class="icon" aria-hidden="true"><use href="#i-calendar"></use></svg>
+                </button>
+                <input type="hidden" id="edit-end-date">
               </div>
             </div>
             <div class="date-actions">
@@ -2151,6 +2938,7 @@
   'use strict';
 
   const STORAGE_KEY = 'shijie.goals.v1';
+  const SYNC_CONFIG_KEY = 'shijie.sync.v1';
   const APP_ID = 'shijie';
   const MAX_NODES = 5000;
   const MAX_DEPTH = 80;
@@ -2168,7 +2956,8 @@
   const state = {
     goals: [],
     noteHtml: '',
-    prefs: { viewMode: 'single', progressMode: 'bar' }
+    prefs: { viewMode: 'single', progressMode: 'bar' },
+    updatedAt: 0
   };
   const ui = {
     modalMode: null,
@@ -2184,8 +2973,19 @@
     confirmResolver: null,
     previewTimer: null,
     noteRange: null,
-    noteStateFrame: null
+    noteStateFrame: null,
+    dateField: '',
+    dateView: null,
+    colorDraft: null,
+    detailStack: [],
+    detailReturnFocus: null,
+    syncTab: 'webdav',
+    syncBusy: false,
+    syncState: 'idle',
+    syncReturnFocus: null
   };
+  let syncConfig = createDefaultSyncConfig();
+  let syncTimer = null;
   const dragState = {
     active: false,
     started: false,
@@ -2194,6 +2994,7 @@
     sourceNode: null,
     sourceBranch: null,
     sourceRow: null,
+    container: null,
     descendantIds: null,
     ghost: null,
     indicator: null,
@@ -2232,9 +3033,10 @@
         const list = Array.isArray(parsed) ? parsed : (parsed && Array.isArray(parsed.goals) ? parsed.goals : []);
         state.goals = normalizeForest(list);
         if (parsed && !Array.isArray(parsed)) {
+          state.updatedAt = Number(parsed.updatedAt) || 0;
           state.noteHtml = sanitizeNoteHtml(typeof parsed.noteHtml === 'string' ? parsed.noteHtml : '');
           if (parsed.prefs && typeof parsed.prefs === 'object') {
-            state.prefs.viewMode = parsed.prefs.viewMode === 'double' ? 'double' : 'single';
+            state.prefs.viewMode = normalizeViewMode(parsed.prefs.viewMode);
             state.prefs.progressMode = parsed.prefs.progressMode === 'tint' ? 'tint' : 'bar';
           }
         }
@@ -2247,6 +3049,10 @@
       setTimeout(() => showToast('本地存储不可用，当前修改可能无法保留', 'error'), 500);
     }
 
+    loadSyncConfig();
+    populateSyncSettings();
+    updateSyncButtonState();
+    startSyncTimer();
     if (!ui.storageFailed) setSaveStatus(restored ? 'loaded' : 'idle');
     render();
     renderNote();
@@ -2257,6 +3063,22 @@
     Object.assign(els, {
       saveStatus: $('#save-status'),
       saveText: $('#save-text'),
+      syncBtn: $('#sync-btn'),
+      syncDot: $('#sync-dot'),
+      syncModal: $('#sync-modal'),
+      syncStatus: $('#sync-status'),
+      syncStatusText: $('#sync-status-text'),
+      syncSave: $('#sync-save'),
+      syncWebdavPane: $('#sync-webdav-pane'),
+      syncLanPane: $('#sync-lan-pane'),
+      syncWebdavUrl: $('#sync-webdav-url'),
+      syncWebdavUsername: $('#sync-webdav-username'),
+      syncWebdavPassword: $('#sync-webdav-password'),
+      syncWebdavPath: $('#sync-webdav-path'),
+      syncWebdavAuto: $('#sync-webdav-auto'),
+      syncLanUrl: $('#sync-lan-url'),
+      syncLanRoom: $('#sync-lan-room'),
+      syncLanAuto: $('#sync-lan-auto'),
       today: $('#today'),
       appMenuBtn: $('#app-menu-btn'),
       appMenu: $('#app-menu'),
@@ -2266,6 +3088,21 @@
       nodeMenuLabel: $('#node-menu-label'),
       popoverScrim: $('#popover-scrim'),
       dragIndicator: $('#drag-drop-indicator'),
+      detailModal: $('#detail-modal'),
+      detailPanel: $('#detail-panel'),
+      detailTitle: $('#detail-title'),
+      detailKicker: $('#detail-kicker'),
+      detailMeta: $('#detail-meta'),
+      detailDeadline: $('#detail-deadline'),
+      detailPercent: $('#detail-percent'),
+      detailProgressTrack: $('#detail-progress-track'),
+      detailProgressFill: $('#detail-progress-fill'),
+      detailTree: $('#detail-tree'),
+      detailEmpty: $('#detail-empty'),
+      detailBack: $('#detail-back'),
+      detailAdd: $('#detail-add'),
+      detailEdit: $('#detail-edit'),
+      detailBody: $('.detail-body', $('#detail-modal')),
       noteEditor: $('#note-editor'),
       noteToolbar: $('#note-toolbar'),
       overallRing: $('#overall-ring'),
@@ -2276,6 +3113,11 @@
       statActive: $('#stat-active'),
       statRoots: $('#stat-roots'),
       goalsTree: $('#goals-tree'),
+      kanbanNav: $('#kanban-nav'),
+      kanbanDots: $('#kanban-dots'),
+      kanbanPrev: $('#kanban-prev'),
+      kanbanNext: $('#kanban-next'),
+      kanbanPosition: $('#kanban-position'),
       emptyState: $('#empty-state'),
       emptyAdd: $('#empty-add'),
       emptySample: $('#empty-sample'),
@@ -2295,8 +3137,24 @@
       previewList: $('#preview-list'),
       previewEmpty: $('#preview-empty'),
       editTitle: $('#edit-title'),
+      editEmoji: $('#edit-emoji'),
+      emojiSuggestions: $('#emoji-suggestions'),
       editStartDate: $('#edit-start-date'),
       editEndDate: $('#edit-end-date'),
+      editStartDateTrigger: $('#edit-start-date-trigger'),
+      editEndDateTrigger: $('#edit-end-date-trigger'),
+      editStartDateLabel: $('#edit-start-date-label'),
+      editEndDateLabel: $('#edit-end-date-label'),
+      datePopover: $('#date-popover'),
+      colorPopover: $('#color-popover'),
+      colorPopPreview: $('#color-pop-preview'),
+      customHue: $('#custom-hue'),
+      customSaturation: $('#custom-saturation'),
+      customLightness: $('#custom-lightness'),
+      customHueValue: $('#custom-hue-value'),
+      customSaturationValue: $('#custom-saturation-value'),
+      customLightnessValue: $('#custom-lightness-value'),
+      customHex: $('#custom-hex'),
       clearDates: $('#clear-dates'),
       colorGrid: $('#color-grid'),
       editTypeSection: $('#edit-type-section'),
@@ -2323,8 +3181,23 @@
     els.emptySample.addEventListener('click', () => loadSample());
     els.collapseAll.addEventListener('click', toggleAllCollapsed);
     els.appMenuBtn.addEventListener('click', toggleAppMenu);
+    els.syncBtn.addEventListener('click', openSyncModal);
+    els.syncSave.addEventListener('click', () => {
+      saveSyncSettings();
+      showToast('同步设置已保存');
+    });
+    els.syncModal.addEventListener('click', handleSyncModalClick);
+    $$('[data-close-sync]').forEach((el) => el.addEventListener('click', closeSyncModal));
     els.displayBtn.addEventListener('click', toggleDisplayMenu);
     els.displayMenu.addEventListener('click', handleDisplayMenuClick);
+    els.kanbanPrev.addEventListener('click', () => moveKanban(-1));
+    els.kanbanNext.addEventListener('click', () => moveKanban(1));
+    els.kanbanDots.addEventListener('click', (event) => {
+      const dot = event.target.closest('[data-kanban-index]');
+      if (!dot) return;
+      scrollToKanban(Number(dot.dataset.kanbanIndex));
+    });
+    els.goalsTree.addEventListener('scroll', updateKanbanPosition, { passive: true });
 
     els.goalLines.addEventListener('input', () => {
       hideFormError();
@@ -2344,6 +3217,7 @@
     });
 
     $$('[data-close-goal]').forEach((el) => el.addEventListener('click', () => closeGoalModal()));
+    $$('[data-close-detail]').forEach((el) => el.addEventListener('click', closeDetail));
     $$('[data-close-confirm]').forEach((el) => el.addEventListener('click', () => resolveConfirm(false)));
     els.confirmOk.addEventListener('click', () => resolveConfirm(true));
 
@@ -2352,12 +3226,48 @@
     els.appMenu.addEventListener('click', handleAppMenuClick);
     els.goalsTree.addEventListener('click', handleTreeClick);
     els.goalsTree.addEventListener('pointerdown', handleDragPointerDown);
+    els.detailTree.addEventListener('click', handleDetailTreeClick);
+    els.detailTree.addEventListener('pointerdown', handleDragPointerDown);
+    els.detailAdd.addEventListener('click', () => {
+      const id = ui.detailStack[ui.detailStack.length - 1];
+      if (id) openAddModal(id);
+    });
+    els.detailEdit.addEventListener('click', () => {
+      const id = ui.detailStack[ui.detailStack.length - 1];
+      if (id) openEditModal(id);
+    });
+    els.detailBack.addEventListener('click', popDetail);
     els.importFile.addEventListener('change', handleImportFile);
     els.clearDates.addEventListener('click', clearEditDates);
-    els.editStartDate.addEventListener('input', () => { hideFormError(); updateClearDatesState(); });
-    els.editEndDate.addEventListener('input', () => { hideFormError(); updateClearDatesState(); });
+    els.editStartDateTrigger.addEventListener('click', (event) => {
+      event.stopPropagation();
+      openDatePicker('start');
+    });
+    els.editEndDateTrigger.addEventListener('click', (event) => {
+      event.stopPropagation();
+      openDatePicker('end');
+    });
+    els.datePopover.addEventListener('click', handleDatePopoverClick);
     els.colorGrid.addEventListener('click', handleColorClick);
-    els.colorGrid.addEventListener('change', handleColorInput);
+    els.colorPopover.addEventListener('click', handleColorPopoverClick);
+    [els.customHue, els.customSaturation, els.customLightness].forEach((input) => {
+      input.addEventListener('input', handleColorSliderInput);
+    });
+    els.customHex.addEventListener('input', handleColorHexInput);
+    els.customHex.addEventListener('blur', () => {
+      const value = normalizeHexColor(els.customHex.value);
+      if (value) {
+        setColorDraftFromHex(value);
+      } else {
+        updateColorFieldsFromDraft();
+      }
+    });
+    els.emojiSuggestions.addEventListener('click', (event) => {
+      const button = event.target.closest('[data-emoji]');
+      if (!button) return;
+      els.editEmoji.value = button.dataset.emoji || '';
+      els.editEmoji.focus();
+    });
     els.noteToolbar.addEventListener('mousedown', (event) => event.preventDefault());
     els.noteToolbar.addEventListener('click', handleNoteToolbarClick);
     document.addEventListener('selectionchange', rememberNoteSelection);
@@ -2367,16 +3277,26 @@
       const inNodeTrigger = event.target.closest('[data-action="menu"]');
       const inAppTrigger = event.target.closest('#app-menu-btn');
       const inDisplayTrigger = event.target.closest('#display-btn');
+      const inDatePopover = event.target.closest('#date-popover');
+      const inDateTrigger = event.target.closest('.date-trigger');
+      const inColorPopover = event.target.closest('#color-popover');
+      const inColorTrigger = event.target.closest('[data-custom-color]');
       if (!inPopover && !inNodeTrigger && !inAppTrigger && !inDisplayTrigger) closePopovers();
+      if (!inDatePopover && !inDateTrigger) closeDatePicker();
+      if (!inColorPopover && !inColorTrigger) closeColorPicker();
     });
 
     document.addEventListener('keydown', handleKeydown);
     window.addEventListener('resize', () => {
       closePopovers();
+      closeDatePicker();
+      closeColorPicker();
       applyDisplayModes();
     });
     document.addEventListener('scroll', () => {
       if (!els.nodeMenu.hidden || !els.appMenu.hidden || !els.displayMenu.hidden) closePopovers();
+      closeDatePicker();
+      closeColorPicker();
     }, true);
     window.addEventListener('beforeunload', () => {
       if (ui.dirty) persist();
@@ -2439,6 +3359,40 @@
   function normalizeHexColor(value) {
     const match = String(value || '').trim().match(/^#?([0-9a-f]{6})$/i);
     return match ? '#' + match[1].toLowerCase() : '';
+  }
+
+  function normalizeEmoji(value) {
+    const text = String(value || '').trim();
+    if (!text) return '';
+    try {
+      const segmenter = new Intl.Segmenter(undefined, { granularity: 'grapheme' });
+      return Array.from(segmenter.segment(text)).slice(0, 3).map((part) => part.segment).join('').slice(0, 24);
+    } catch (error) {
+      return text.slice(0, 8);
+    }
+  }
+
+  function extractLeadingEmoji(text) {
+    const value = String(text || '').trim();
+    if (!value) return { emoji: '', rest: value };
+    let first = '';
+    try {
+      const segmenter = new Intl.Segmenter(undefined, { granularity: 'grapheme' });
+      const iterator = segmenter.segment(value)[Symbol.iterator]();
+      const next = iterator.next();
+      if (!next.done) first = next.value.segment;
+    } catch (error) {
+      first = Array.from(value)[0] || '';
+    }
+    if (!first) return { emoji: '', rest: value };
+    if (!/\p{Extended_Pictographic}|\p{Regional_Indicator}|\u20e3/iu.test(first)) {
+      return { emoji: '', rest: value };
+    }
+    return { emoji: normaliseEmojiGrapheme(first), rest: value.slice(first.length).trimStart() };
+  }
+
+  function normaliseEmojiGrapheme(value) {
+    return normalizeEmoji(value);
   }
 
   function hexToRgb(hex) {
@@ -2542,6 +3496,137 @@
     '</span>';
   }
 
+  function formatDateDisplay(value) {
+    const date = normalizeDateValue(value);
+    if (!date) return '选择日期';
+    const parts = date.split('-');
+    return parts[0] + '.' + parts[1] + '.' + parts[2];
+  }
+
+  function updateDateTriggers() {
+    if (!els.editStartDateTrigger) return;
+    const start = els.editStartDate.value;
+    const end = els.editEndDate.value;
+    els.editStartDateLabel.textContent = formatDateDisplay(start);
+    els.editEndDateLabel.textContent = formatDateDisplay(end);
+    els.editStartDateTrigger.classList.toggle('is-set', Boolean(start));
+    els.editEndDateTrigger.classList.toggle('is-set', Boolean(end));
+    updateClearDatesState();
+  }
+
+  function openDatePicker(field) {
+    if (!els.datePopover) return;
+    if (!els.datePopover.hidden && ui.dateField === field) {
+      closeDatePicker();
+      return;
+    }
+    closeColorPicker();
+    const input = field === 'start' ? els.editStartDate : els.editEndDate;
+    const other = field === 'start' ? els.editEndDate : els.editStartDate;
+    const trigger = field === 'start' ? els.editStartDateTrigger : els.editEndDateTrigger;
+    const selected = normalizeDateValue(input.value);
+    const fallback = normalizeDateValue(other.value);
+    const base = selected || fallback || new Date().toISOString().slice(0, 10);
+    const parts = base.split('-').map(Number);
+    ui.dateField = field;
+    ui.dateView = { year: parts[0], month: parts[1] - 1 };
+    renderDatePicker();
+    els.datePopover.hidden = false;
+    positionDatePopover(trigger);
+    requestAnimationFrame(() => {
+      const focusTarget = $('.date-day.is-selected', els.datePopover) || $('.date-day.is-today', els.datePopover) || $('.date-day', els.datePopover);
+      if (focusTarget) focusTarget.focus({ preventScroll: true });
+    });
+  }
+
+  function renderDatePicker() {
+    if (!ui.dateView) return;
+    const year = ui.dateView.year;
+    const month = ui.dateView.month;
+    const currentValue = ui.dateField === 'start' ? els.editStartDate.value : els.editEndDate.value;
+    const todayValue = localDateOffset(0);
+    const firstDay = new Date(year, month, 1).getDay();
+    const cells = [];
+    const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
+    for (let i = 0; i < 42; i += 1) {
+      const date = new Date(year, month, 1 - firstDay + i);
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, '0');
+      const d = String(date.getDate()).padStart(2, '0');
+      const value = y + '-' + m + '-' + d;
+      const classes = ['date-day'];
+      if (date.getMonth() !== month) classes.push('is-other');
+      if (value === todayValue) classes.push('is-today');
+      if (value === currentValue) classes.push('is-selected');
+      cells.push('<button class="' + classes.join(' ') + '" type="button" data-date="' + value + '" aria-label="' + value + '"' + (value === currentValue ? ' aria-selected="true"' : '') + '>' + date.getDate() + '</button>');
+    }
+    els.datePopover.innerHTML =
+      '<div class="date-pop-head">' +
+        '<button class="date-nav date-nav--prev" type="button" data-date-nav="-1" aria-label="上个月">' + icon('chevron') + '</button>' +
+        '<div class="date-pop-title">' + year + ' 年 ' + (month + 1) + ' 月</div>' +
+        '<button class="date-nav date-nav--next" type="button" data-date-nav="1" aria-label="下个月">' + icon('chevron') + '</button>' +
+      '</div>' +
+      '<div class="date-weekdays">' + weekdays.map((day) => '<span class="date-weekday">' + day + '</span>').join('') + '</div>' +
+      '<div class="date-days">' + cells.join('') + '</div>' +
+      '<div class="date-pop-foot">' +
+        '<button class="btn-link" type="button" data-date-clear>清除日期</button>' +
+        '<button class="date-today-btn" type="button" data-date-today>今天</button>' +
+      '</div>';
+  }
+
+  function positionDatePopover(trigger) {
+    if (!els.datePopover || !trigger) return;
+    const rect = trigger.getBoundingClientRect();
+    const width = els.datePopover.offsetWidth;
+    const height = els.datePopover.offsetHeight;
+    const margin = 12;
+    let left = clamp(rect.left, margin, Math.max(margin, window.innerWidth - width - margin));
+    let top = rect.bottom + 8;
+    if (top + height > window.innerHeight - margin) top = rect.top - height - 8;
+    top = clamp(top, margin, Math.max(margin, window.innerHeight - height - margin));
+    els.datePopover.style.left = left + 'px';
+    els.datePopover.style.top = top + 'px';
+  }
+
+  function closeDatePicker() {
+    if (!els.datePopover) return;
+    els.datePopover.hidden = true;
+    ui.dateField = '';
+  }
+
+  function handleDatePopoverClick(event) {
+    const nav = event.target.closest('[data-date-nav]');
+    if (nav && ui.dateView) {
+      const delta = Number(nav.dataset.dateNav);
+      const date = new Date(ui.dateView.year, ui.dateView.month + delta, 1);
+      ui.dateView = { year: date.getFullYear(), month: date.getMonth() };
+      renderDatePicker();
+      return;
+    }
+    if (event.target.closest('[data-date-today]')) {
+      selectDateValue(ui.dateField, localDateOffset(0));
+      return;
+    }
+    if (event.target.closest('[data-date-clear]')) {
+      selectDateValue(ui.dateField, '');
+      return;
+    }
+    const day = event.target.closest('[data-date]');
+    if (day) {
+      selectDateValue(ui.dateField, day.dataset.date);
+    }
+  }
+
+  function selectDateValue(field, value) {
+    if (!field) return;
+    const normalized = normalizeDateValue(value);
+    if (field === 'start') els.editStartDate.value = normalized;
+    if (field === 'end') els.editEndDate.value = normalized;
+    updateDateTriggers();
+    closeDatePicker();
+    hideFormError();
+  }
+
   function sanitizeNoteHtml(html) {
     if (!html) return '';
     const template = document.createElement('template');
@@ -2610,11 +3695,10 @@
     els.colorGrid.innerHTML =
       '<button class="color-swatch color-swatch--default" type="button" data-color="" aria-label="默认颜色" aria-pressed="true" title="默认颜色">' + icon('check') + '</button>' +
       presetHtml +
-      '<label class="custom-color" title="选择自定义颜色">' +
-        '<input type="color" id="edit-custom-color" value="' + DEFAULT_GOAL_COLOR + '" aria-label="自定义进度条颜色">' +
+      '<button class="custom-color-btn" type="button" data-custom-color aria-haspopup="dialog" title="自定义颜色">' +
         '<span class="color-swatch" id="custom-color-swatch" style="--swatch:' + DEFAULT_GOAL_COLOR + '" aria-hidden="true">' + icon('check') + '</span>' +
         '<span>自定义</span>' +
-      '</label>';
+      '</button>';
     updateColorPicker();
   }
 
@@ -2627,9 +3711,7 @@
       button.classList.toggle('is-selected', selected);
       button.setAttribute('aria-pressed', String(selected));
     });
-    const customInput = $('#edit-custom-color', els.colorGrid);
     const customSwatch = $('#custom-color-swatch', els.colorGrid);
-    if (customInput && color) customInput.value = color;
     if (customSwatch) {
       customSwatch.style.setProperty('--swatch', color || DEFAULT_GOAL_COLOR);
       customSwatch.classList.toggle('is-selected', Boolean(color) && !isPreset);
@@ -2637,16 +3719,152 @@
   }
 
   function handleColorClick(event) {
+    const customButton = event.target.closest('[data-custom-color]');
+    if (customButton) {
+      openColorPicker(customButton);
+      return;
+    }
     const button = event.target.closest('[data-color]');
     if (!button || !els.colorGrid.contains(button)) return;
+    closeColorPicker();
     ui.editColor = normalizeHexColor(button.dataset.color);
     updateColorPicker();
   }
 
-  function handleColorInput(event) {
-    if (event.target.id !== 'edit-custom-color') return;
-    ui.editColor = normalizeHexColor(event.target.value);
-    updateColorPicker();
+  function hexToHsl(hexValue) {
+    const rgb = hexToRgb(hexValue);
+    if (!rgb) return { h: 105, s: 20, l: 44 };
+    const r = rgb.r / 255;
+    const g = rgb.g / 255;
+    const b = rgb.b / 255;
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    const l = (max + min) / 2;
+    let h = 0;
+    let s = 0;
+    if (max !== min) {
+      const d = max - min;
+      s = l > .5 ? d / (2 - max - min) : d / (max + min);
+      if (max === r) h = (g - b) / d + (g < b ? 6 : 0);
+      else if (max === g) h = (b - r) / d + 2;
+      else h = (r - g) / d + 4;
+      h /= 6;
+    }
+    return { h: Math.round(h * 360), s: Math.round(s * 100), l: Math.round(l * 100) };
+  }
+
+  function hslToHex(h, s, l) {
+    const hue = ((Number(h) % 360) + 360) % 360 / 360;
+    const sat = clamp(Number(s) / 100, 0, 1);
+    const light = clamp(Number(l) / 100, 0, 1);
+    const hueToRgb = (p, q, t) => {
+      let value = t;
+      if (value < 0) value += 1;
+      if (value > 1) value -= 1;
+      if (value < 1 / 6) return p + (q - p) * 6 * value;
+      if (value < 1 / 2) return q;
+      if (value < 2 / 3) return p + (q - p) * (2 / 3 - value) * 6;
+      return p;
+    };
+    let r;
+    let g;
+    let b;
+    if (sat === 0) {
+      r = light; g = light; b = light;
+    } else {
+      const q = light < .5 ? light * (1 + sat) : light + sat - light * sat;
+      const p = 2 * light - q;
+      r = hueToRgb(p, q, hue + 1 / 3);
+      g = hueToRgb(p, q, hue);
+      b = hueToRgb(p, q, hue - 1 / 3);
+    }
+    return '#' + [r, g, b].map((value) => Math.round(value * 255).toString(16).padStart(2, '0')).join('');
+  }
+
+  function openColorPicker(trigger) {
+    if (!els.colorPopover) return;
+    closeDatePicker();
+    const color = normalizeHexColor(ui.editColor) || DEFAULT_GOAL_COLOR;
+    ui.colorDraft = hexToHsl(color);
+    updateColorFieldsFromDraft();
+    els.colorPopover.hidden = false;
+    positionColorPopover(trigger);
+    requestAnimationFrame(() => els.customHue.focus({ preventScroll: true }));
+  }
+
+  function positionColorPopover(trigger) {
+    if (!els.colorPopover || !trigger) return;
+    const rect = trigger.getBoundingClientRect();
+    const width = els.colorPopover.offsetWidth;
+    const height = els.colorPopover.offsetHeight;
+    const margin = 12;
+    let left = clamp(rect.right - width, margin, Math.max(margin, window.innerWidth - width - margin));
+    let top = rect.bottom + 8;
+    if (top + height > window.innerHeight - margin) top = rect.top - height - 8;
+    top = clamp(top, margin, Math.max(margin, window.innerHeight - height - margin));
+    els.colorPopover.style.left = left + 'px';
+    els.colorPopover.style.top = top + 'px';
+  }
+
+  function closeColorPicker() {
+    if (!els.colorPopover) return;
+    els.colorPopover.hidden = true;
+  }
+
+  function updateColorFieldsFromDraft() {
+    if (!ui.colorDraft) return;
+    const { h, s, l } = ui.colorDraft;
+    const hex = hslToHex(h, s, l);
+    els.customHue.value = String(h);
+    els.customSaturation.value = String(s);
+    els.customLightness.value = String(l);
+    els.customHueValue.textContent = String(h);
+    els.customSaturationValue.textContent = String(s);
+    els.customLightnessValue.textContent = String(l);
+    els.customHex.value = hex;
+    els.colorPopPreview.style.background = hex;
+    [els.customHue, els.customSaturation, els.customLightness].forEach((input) => {
+      input.style.setProperty('--slider-thumb', hex);
+    });
+  }
+
+  function handleColorSliderInput() {
+    if (!ui.colorDraft) return;
+    ui.colorDraft = {
+      h: Number(els.customHue.value),
+      s: Number(els.customSaturation.value),
+      l: Number(els.customLightness.value)
+    };
+    updateColorFieldsFromDraft();
+  }
+
+  function handleColorHexInput() {
+    const value = normalizeHexColor(els.customHex.value);
+    if (!value) return;
+    ui.colorDraft = hexToHsl(value);
+    const draftHex = hslToHex(ui.colorDraft.h, ui.colorDraft.s, ui.colorDraft.l);
+    els.colorPopPreview.style.background = draftHex;
+  }
+
+  function setColorDraftFromHex(value) {
+    const color = normalizeHexColor(value);
+    if (!color) return;
+    ui.colorDraft = hexToHsl(color);
+    updateColorFieldsFromDraft();
+  }
+
+  function handleColorPopoverClick(event) {
+    if (event.target.closest('#color-cancel')) {
+      closeColorPicker();
+      return;
+    }
+    if (event.target.closest('#color-apply')) {
+      const color = hslToHex(ui.colorDraft.h, ui.colorDraft.s, ui.colorDraft.l);
+      ui.editColor = color;
+      updateColorPicker();
+      closeColorPicker();
+      hideFormError();
+    }
   }
 
   /* ------------------------------------------------------------
@@ -2811,18 +4029,20 @@
     }
   }
 
-  function persist() {
+  function persist(options) {
     if (ui.saveTimer) {
       clearTimeout(ui.saveTimer);
       ui.saveTimer = null;
     }
+    const stamp = options && Number.isFinite(Number(options.timestamp)) ? Number(options.timestamp) : Date.now();
+    state.updatedAt = stamp;
     try {
       const safeNote = sanitizeNoteHtml(state.noteHtml);
       state.noteHtml = safeNote;
       localStorage.setItem(STORAGE_KEY, JSON.stringify({
         app: APP_ID,
         version: 2,
-        updatedAt: Date.now(),
+        updatedAt: stamp,
         goals: state.goals,
         noteHtml: safeNote,
         prefs: state.prefs
@@ -2895,6 +4115,7 @@
         target: target,
         unit: typeof rawNode.unit === 'string' ? rawNode.unit.trim().slice(0, 12) : '',
         color: normalizeHexColor(rawNode.color),
+        emoji: normalizeEmoji(rawNode.emoji),
         startDate: normalizeDateValue(rawNode.startDate),
         endDate: normalizeDateValue(rawNode.endDate),
         collapsed: collapsed,
@@ -3139,6 +4360,9 @@
       content = cleanInline(content);
       if (!content) continue;
 
+      const emojiInfo = extractLeadingEmoji(content);
+      content = emojiInfo.rest;
+      if (!content) continue;
       const countInfo = extractCountInfo(content);
       const title = countInfo ? countInfo.title : content;
       if (!title) continue;
@@ -3154,6 +4378,7 @@
           target: countInfo ? countInfo.target : 1,
           unit: countInfo ? countInfo.unit : '',
           color: '',
+          emoji: emojiInfo.emoji,
           startDate: '',
           endDate: '',
           collapsed: false,
@@ -3201,6 +4426,7 @@
     renderTree(previousBars);
     restoreFocus(focusKey);
     updateCollapseAll();
+    if (!els.detailModal.hidden) renderDetail(false);
   }
 
   function renderSummary() {
@@ -3257,7 +4483,10 @@
     animateBars();
   }
 
-  function renderBranch(goal, depth, index, cache, previousBars) {
+  function renderBranch(goal, depth, index, cache, previousBars, options) {
+    const opts = options || {};
+    const prefix = opts.prefix || '';
+    const instantBars = Boolean(opts.instantBars);
     const progress = computeProgress(goal, cache);
     const isRoot = depth === 0;
     const hasChildren = goal.children.length > 0;
@@ -3265,58 +4494,52 @@
     const previous = previousBars.has(goal.id) ? previousBars.get(goal.id) : 0;
     const percentValue = clamp(progress.percent, 0, 100);
     const oldPercent = clamp(previous, 0, 100);
+    const initialPercent = instantBars ? percentValue : oldPercent;
     const title = escapeHtml(goal.title);
     const titleAttr = escapeHtml(truncate(goal.title, 80));
     const rootNumber = String(index + 1).padStart(2, '0');
     const palette = getGoalPalette(goal.color);
     const deadline = renderDeadline(goal);
+    const emoji = goal.emoji ? '<span class="goal-emoji" aria-hidden="true">' + escapeHtml(goal.emoji) + '</span>' : '';
+    const titleDomId = 'goal-title-' + prefix + goal.id;
     const branchStyle = '--p:' + percentValue.toFixed(2) + '%;--goal-start:' + palette.start + ';--goal-end:' + palette.end + ';--goal-dark:' + palette.dark + ';--goal-tint:' + palette.tint + ';--count-accent:' + palette.count + ';';
 
-    let badge = '';
-    if (hasChildren) {
-      badge = progress.complete
-        ? '<span class="badge badge-done">' + icon('check') + '已完成</span>'
-        : '<span class="badge badge-auto">自动汇总</span>';
-    } else if (goal.type === 'count') {
-      badge = progress.complete
-        ? '<span class="badge badge-done">' + icon('check') + '已完成</span>'
-        : '<span class="badge badge-count">计数</span>';
-    } else if (progress.complete) {
-      badge = '<span class="badge badge-done">' + icon('check') + '已完成</span>';
-    }
+    const badge = progress.complete
+      ? '<span class="badge badge-done">' + icon('check') + '完成</span>'
+      : '';
 
     let meta = '';
     if (hasChildren) {
-      meta = goal.children.length + ' 个子目标 · ' + progress.leafDone + '/' + progress.leafTotal + ' 小目标达成';
+      meta = goal.children.length + ' 子目标 · ' + progress.leafDone + '/' + progress.leafTotal + ' 达成';
     } else if (goal.type === 'count') {
-      meta = progress.complete ? '计数目标 · 已达成' : '计数目标 · 继续累积';
+      meta = progress.complete ? '已达成' : '还差 ' + Math.max(0, goal.target - goal.count) + (goal.unit ? ' ' + escapeHtml(goal.unit) : '');
     } else {
-      meta = progress.complete ? '普通目标 · 已完成' : '普通目标 · 待完成';
+      meta = progress.complete ? '已完成' : '待完成';
     }
 
     let lead = '';
     if (hasChildren) {
-      lead = '<button class="lead-btn' + (progress.complete ? ' is-done' : '') + '" type="button" data-action="collapse" data-id="' + goal.id + '" aria-expanded="' + (!collapsed) + '" aria-label="' + (collapsed ? '展开' : '折叠') + '「' + titleAttr + '」的子目标" data-focus-key="collapse-' + goal.id + '">' +
+      lead = '<button class="lead-btn' + (progress.complete ? ' is-done' : '') + '" type="button" data-action="collapse" data-id="' + goal.id + '" aria-expanded="' + (!collapsed) + '" aria-label="' + (collapsed ? '展开' : '折叠') + '「' + titleAttr + '」的子目标" data-focus-key="' + prefix + 'collapse-' + goal.id + '">' +
         icon('chevron') + '</button>';
     } else if (goal.type === 'count') {
       lead = '<span class="count-orb' + (progress.complete ? ' is-complete' : '') + '" style="--p:' + percentValue.toFixed(2) + '%" aria-hidden="true"></span>';
     } else {
-      lead = '<button class="check-btn" type="button" role="checkbox" aria-checked="' + (goal.done ? 'true' : 'false') + '" data-action="toggle" data-id="' + goal.id + '" aria-label="' + (goal.done ? '取消完成' : '标记完成') + '「' + titleAttr + '」" data-focus-key="toggle-' + goal.id + '">' + icon('check') + '</button>';
+      lead = '<button class="check-btn" type="button" role="checkbox" aria-checked="' + (goal.done ? 'true' : 'false') + '" data-action="toggle" data-id="' + goal.id + '" aria-label="' + (goal.done ? '取消完成' : '标记完成') + '「' + titleAttr + '」" data-focus-key="' + prefix + 'toggle-' + goal.id + '">' + icon('check') + '</button>';
     }
 
     let counter = '';
     if (!hasChildren && goal.type === 'count') {
       const unit = goal.unit ? '<span class="stepper-unit">' + escapeHtml(goal.unit) + '</span>' : '';
       counter = '<div class="stepper" aria-label="更新「' + titleAttr + '」的计数">' +
-        '<button type="button" data-action="decrement" data-id="' + goal.id + '" aria-label="减少一个' + (goal.unit ? escapeHtml(goal.unit) : '') + '" data-focus-key="dec-' + goal.id + '"' + (goal.count <= 0 ? ' disabled' : '') + '>' + icon('minus') + '</button>' +
+        '<button type="button" data-action="decrement" data-id="' + goal.id + '" aria-label="减少一个' + (goal.unit ? escapeHtml(goal.unit) : '') + '" data-focus-key="' + prefix + 'dec-' + goal.id + '"' + (goal.count <= 0 ? ' disabled' : '') + '>' + icon('minus') + '</button>' +
         '<span class="stepper-value"><strong>' + goal.count + '</strong><span class="stepper-slash">/</span>' + goal.target + unit + '</span>' +
-        '<button type="button" data-action="increment" data-id="' + goal.id + '" aria-label="增加一个' + (goal.unit ? escapeHtml(goal.unit) : '') + '" data-focus-key="inc-' + goal.id + '"' + (goal.count >= goal.target ? ' disabled' : '') + '>' + icon('plus') + '</button>' +
+        '<button type="button" data-action="increment" data-id="' + goal.id + '" aria-label="增加一个' + (goal.unit ? escapeHtml(goal.unit) : '') + '" data-focus-key="' + prefix + 'inc-' + goal.id + '"' + (goal.count >= goal.target ? ' disabled' : '') + '>' + icon('plus') + '</button>' +
         '</div>';
     }
 
     const childrenHtml = hasChildren
-      ? '<div class="goal-children" role="group" aria-labelledby="goal-title-' + goal.id + '"' + (collapsed ? ' hidden' : '') + '>' +
-          goal.children.map((child, childIndex) => renderBranch(child, depth + 1, childIndex, cache, previousBars)).join('') +
+      ? '<div class="goal-children" role="group" aria-labelledby="' + titleDomId + '"' + (collapsed ? ' hidden' : '') + '>' +
+          goal.children.map((child, childIndex) => renderBranch(child, depth + 1, childIndex, cache, previousBars, opts)).join('') +
         '</div>'
       : '';
 
@@ -3328,7 +4551,7 @@
             '<div class="goal-title-block">' +
               (isRoot ? '<span class="root-kicker">主目标 ' + rootNumber + '</span>' : '') +
               '<div class="title-line">' +
-                '<div class="goal-title" id="goal-title-' + goal.id + '">' + title + '</div>' +
+                '<button class="goal-title" type="button" id="' + titleDomId + '" data-action="open-detail" data-id="' + goal.id + '" title="查看「' + titleAttr + '」的子目标">' + emoji + title + '</button>' +
                 deadline +
                 badge +
               '</div>' +
@@ -3337,14 +4560,14 @@
             '<div class="goal-aside">' +
               '<span class="percent">' + progress.display + '<small>%</small></span>' +
               '<div class="row-actions">' +
-                '<button class="icon-btn drag-handle" type="button" data-action="drag" data-id="' + goal.id + '" aria-label="拖动「' + titleAttr + '」调整位置" title="拖动调整位置" data-focus-key="drag-' + goal.id + '">' + icon('grip') + '</button>' +
-                '<button class="icon-btn" type="button" data-action="add-child" data-id="' + goal.id + '" aria-label="为「' + titleAttr + '」添加子目标" title="添加子目标" data-focus-key="add-' + goal.id + '">' + icon('plus') + '</button>' +
-                '<button class="icon-btn" type="button" data-action="menu" data-id="' + goal.id + '" aria-label="「' + titleAttr + '」的更多操作" aria-haspopup="menu" aria-expanded="false" title="更多操作" data-focus-key="menu-' + goal.id + '">' + icon('dots') + '</button>' +
+                '<button class="icon-btn drag-handle" type="button" data-action="drag" data-id="' + goal.id + '" aria-label="拖动「' + titleAttr + '」调整位置" title="拖动调整位置" data-focus-key="' + prefix + 'drag-' + goal.id + '">' + icon('grip') + '</button>' +
+                '<button class="icon-btn" type="button" data-action="add-child" data-id="' + goal.id + '" aria-label="为「' + titleAttr + '」添加子目标" title="添加子目标" data-focus-key="' + prefix + 'add-' + goal.id + '">' + icon('plus') + '</button>' +
+                '<button class="icon-btn" type="button" data-action="menu" data-id="' + goal.id + '" aria-label="「' + titleAttr + '」的更多操作" aria-haspopup="menu" aria-expanded="false" title="更多操作" data-focus-key="' + prefix + 'menu-' + goal.id + '">' + icon('dots') + '</button>' +
               '</div>' +
             '</div>' +
           '</div>' +
           '<div class="progress-track" role="progressbar" aria-label="「' + titleAttr + '」进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + progress.display + '">' +
-            '<div class="progress-fill" data-goal-id="' + goal.id + '" data-target="' + percentValue.toFixed(2) + '" style="width:' + oldPercent.toFixed(2) + '%"></div>' +
+            '<div class="progress-fill" data-goal-id="' + prefix + goal.id + '" data-target="' + percentValue.toFixed(2) + '" style="width:' + initialPercent.toFixed(2) + '%"></div>' +
           '</div>' +
         '</div>' +
       '</div>' +
@@ -3379,10 +4602,24 @@
      Interaction
   ------------------------------------------------------------ */
   function handleTreeClick(event) {
+    handleGoalViewClick(event, els.goalsTree, false);
+  }
+
+  function handleDetailTreeClick(event) {
+    handleGoalViewClick(event, els.detailTree, true);
+  }
+
+  function handleGoalViewClick(event, container, inDetail) {
     const button = event.target.closest('[data-action]');
-    if (!button || !els.goalsTree.contains(button)) return;
+    if (!button || !container.contains(button)) return;
     const action = button.dataset.action;
     const id = button.dataset.id;
+
+    if (action === 'open-detail') {
+      if (inDetail) pushDetail(id);
+      else openDetail(id);
+      return;
+    }
 
     if (action === 'menu') {
       event.stopPropagation();
@@ -3409,6 +4646,96 @@
       openAddModal(id);
       return;
     }
+  }
+
+  function openDetail(id) {
+    const found = findNode(id);
+    if (!found) return;
+    closePopovers();
+    closeDatePicker();
+    closeColorPicker();
+    ui.detailReturnFocus = document.activeElement;
+    ui.detailStack = [id];
+    els.detailModal.hidden = false;
+    updateBodyLock();
+    renderDetail(true);
+    requestAnimationFrame(() => els.detailPanel.focus({ preventScroll: true }));
+  }
+
+  function pushDetail(id) {
+    const found = findNode(id);
+    if (!found) return;
+    closePopovers();
+    ui.detailStack.push(id);
+    renderDetail(true);
+  }
+
+  function popDetail() {
+    if (ui.detailStack.length <= 1) {
+      closeDetail();
+      return;
+    }
+    ui.detailStack.pop();
+    renderDetail(true);
+  }
+
+  function closeDetail() {
+    if (els.detailModal.hidden) return;
+    closeDatePicker();
+    closeColorPicker();
+    els.detailModal.hidden = true;
+    ui.detailStack = [];
+    updateBodyLock();
+    if (ui.detailReturnFocus && ui.detailReturnFocus.isConnected) {
+      try { ui.detailReturnFocus.focus({ preventScroll: true }); } catch (error) { /* noop */ }
+    }
+  }
+
+  function renderDetail(resetScroll) {
+    if (els.detailModal.hidden) return;
+    const id = ui.detailStack[ui.detailStack.length - 1];
+    const found = id ? findNode(id) : null;
+    if (!found) {
+      ui.detailStack.pop();
+      if (ui.detailStack.length) renderDetail(true);
+      else closeDetail();
+      return;
+    }
+    const goal = found.node;
+    const progress = computeProgress(goal, new Map());
+    const palette = getGoalPalette(goal.color);
+    els.detailPanel.style.setProperty('--p', progress.percent.toFixed(2) + '%');
+    els.detailPanel.style.setProperty('--goal-start', palette.start);
+    els.detailPanel.style.setProperty('--goal-end', palette.end);
+    els.detailPanel.style.setProperty('--goal-dark', palette.dark);
+    els.detailPanel.style.setProperty('--goal-tint', palette.tint);
+    els.detailPanel.style.setProperty('--count-accent', palette.count);
+    els.detailKicker.textContent = ui.detailStack.length > 1 ? '子目标详情 · 第 ' + ui.detailStack.length + ' 层' : '目标详情';
+    els.detailTitle.innerHTML = (goal.emoji ? '<span class="goal-emoji" aria-hidden="true">' + escapeHtml(goal.emoji) + '</span>' : '') + escapeHtml(goal.title);
+    els.detailPercent.innerHTML = Math.round(progress.percent) + '<small>%</small>';
+    els.detailMeta.textContent = goal.children.length
+      ? goal.children.length + ' 个子目标 · ' + progress.leafDone + '/' + progress.leafTotal + ' 小目标达成'
+      : '暂无子目标';
+    els.detailDeadline.innerHTML = renderDeadline(goal);
+    els.detailProgressTrack.setAttribute('aria-valuenow', String(Math.round(progress.percent)));
+    els.detailProgressFill.style.width = progress.percent.toFixed(2) + '%';
+    els.detailBack.hidden = ui.detailStack.length <= 1;
+
+    const active = document.activeElement;
+    const detailFocusKey = active && els.detailTree.contains(active) && active.dataset ? active.dataset.focusKey || '' : '';
+    const cache = new Map();
+    const childHtml = goal.children.map((child, index) => renderBranch(
+      child, 1, index, cache, new Map(), { prefix: 'detail-', instantBars: true }
+    )).join('');
+    els.detailTree.innerHTML = childHtml;
+    els.detailEmpty.hidden = goal.children.length > 0;
+    if (detailFocusKey) {
+      const target = els.detailTree.querySelector('[data-focus-key="' + detailFocusKey + '"]');
+      if (target && !target.disabled) {
+        try { target.focus({ preventScroll: true }); } catch (error) { /* noop */ }
+      }
+    }
+    if (resetScroll && els.detailBody) els.detailBody.scrollTop = 0;
   }
 
   function toggleCheck(id) {
@@ -3468,13 +4795,14 @@
 
   function handleDragPointerDown(event) {
     const handle = event.target.closest('[data-action="drag"]');
-    if (!handle || !els.goalsTree.contains(handle) || dragState.active) return;
+    if (!handle || dragState.active) return;
     if (typeof event.button === 'number' && event.button !== 0) return;
     const found = findNode(handle.dataset.id);
     if (!found) return;
     const row = handle.closest('.goal-row');
     const branch = row ? row.closest('.goal-branch') : null;
-    if (!row || !branch) return;
+    const container = handle.closest('#goals-tree, #detail-tree');
+    if (!row || !branch || !container) return;
     event.preventDefault();
     closePopovers();
     const rect = row.getBoundingClientRect();
@@ -3485,6 +4813,7 @@
     dragState.sourceNode = found.node;
     dragState.sourceBranch = branch;
     dragState.sourceRow = row;
+    dragState.container = container;
     dragState.descendantIds = collectSubtreeIds(found.node);
     dragState.indicator = els.dragIndicator;
     dragState.lastX = event.clientX;
@@ -3551,7 +4880,7 @@
     if (!dragState.started) return;
     const element = document.elementFromPoint(x, y);
     const branch = element ? element.closest('.goal-branch') : null;
-    if (!branch || !els.goalsTree.contains(branch)) {
+    if (!branch || !dragState.container || !dragState.container.contains(branch)) {
       clearDropTarget();
       return;
     }
@@ -3587,14 +4916,25 @@
     if (dragState.autoScrollFrame) cancelAnimationFrame(dragState.autoScrollFrame);
     const step = () => {
       if (!dragState.active || !dragState.started) return;
-      const topEdge = 96;
-      const bottomEdge = window.innerHeight - 54;
-      let delta = 0;
-      if (dragState.lastY < topEdge) delta = -Math.max(4, Math.ceil((topEdge - dragState.lastY) / 6));
-      else if (dragState.lastY > bottomEdge) delta = Math.max(4, Math.ceil((dragState.lastY - bottomEdge) / 6));
-      if (delta) {
-        window.scrollBy(0, delta);
-        updateDropTarget(dragState.lastX, dragState.lastY);
+      if (dragState.container === els.detailTree && els.detailBody) {
+        const bounds = els.detailBody.getBoundingClientRect();
+        let detailDelta = 0;
+        if (dragState.lastY < bounds.top + 60) detailDelta = -Math.max(4, Math.ceil((bounds.top + 60 - dragState.lastY) / 6));
+        else if (dragState.lastY > bounds.bottom - 54) detailDelta = Math.max(4, Math.ceil((dragState.lastY - bounds.bottom + 54) / 6));
+        if (detailDelta) {
+          els.detailBody.scrollTop += detailDelta;
+          updateDropTarget(dragState.lastX, dragState.lastY);
+        }
+      } else {
+        const topEdge = 96;
+        const bottomEdge = window.innerHeight - 54;
+        let delta = 0;
+        if (dragState.lastY < topEdge) delta = -Math.max(4, Math.ceil((topEdge - dragState.lastY) / 6));
+        else if (dragState.lastY > bottomEdge) delta = Math.max(4, Math.ceil((dragState.lastY - bottomEdge) / 6));
+        if (delta) {
+          window.scrollBy(0, delta);
+          updateDropTarget(dragState.lastX, dragState.lastY);
+        }
       }
       dragState.autoScrollFrame = requestAnimationFrame(step);
     };
@@ -3644,6 +4984,7 @@
     dragState.sourceNode = null;
     dragState.sourceBranch = null;
     dragState.sourceRow = null;
+    dragState.container = null;
     dragState.descendantIds = null;
     dragState.ghost = null;
     dragState.targetId = '';
@@ -3720,14 +5061,24 @@
     }
   }
 
+  function normalizeViewMode(mode) {
+    return mode === 'double' || mode === 'kanban' ? mode : 'single';
+  }
+
   function setViewMode(mode) {
-    const next = mode === 'double' ? 'double' : 'single';
+    const next = normalizeViewMode(mode);
     if (state.prefs.viewMode === next) return;
     state.prefs.viewMode = next;
     applyDisplayModes();
     scheduleSave();
     if (next === 'double' && window.innerWidth <= 900) {
       showToast('双栏视图会在宽屏下生效');
+    }
+    if (next === 'kanban') {
+      requestAnimationFrame(() => {
+        if (els.goalsTree) els.goalsTree.scrollLeft = 0;
+        updateKanbanPosition();
+      });
     }
   }
 
@@ -3743,8 +5094,10 @@
   function applyDisplayModes() {
     if (!els.goalsTree) return;
     els.goalsTree.classList.toggle('is-double', state.prefs.viewMode === 'double');
+    els.goalsTree.classList.toggle('is-kanban', state.prefs.viewMode === 'kanban');
     els.goalsTree.classList.toggle('is-tint', state.prefs.progressMode === 'tint');
     updateDisplayControls();
+    updateKanbanNav();
   }
 
   function updateDisplayControls() {
@@ -3758,8 +5111,63 @@
     if (els.displayBtn) {
       const active = state.prefs.viewMode !== 'single' || state.prefs.progressMode !== 'bar';
       els.displayBtn.dataset.active = String(active);
-      els.displayBtn.setAttribute('aria-label', '显示设置，当前' + (state.prefs.viewMode === 'double' ? '双栏布局' : '单栏布局') + '，' + (state.prefs.progressMode === 'tint' ? '卡片着色模式' : '进度条模式'));
+      const viewLabel = state.prefs.viewMode === 'double' ? '双栏布局' : (state.prefs.viewMode === 'kanban' ? '看板布局' : '单栏布局');
+      els.displayBtn.setAttribute('aria-label', '显示设置，当前' + viewLabel + '，' + (state.prefs.progressMode === 'tint' ? '卡片着色模式' : '进度条模式'));
     }
+  }
+
+  function updateKanbanNav() {
+    if (!els.kanbanNav) return;
+    const visible = state.prefs.viewMode === 'kanban' && state.goals.length > 0;
+    els.kanbanNav.hidden = !visible;
+    if (!visible) return;
+    els.kanbanDots.innerHTML = state.goals.map((goal, index) => (
+      '<button class="kanban-dot" type="button" data-kanban-index="' + index + '" aria-label="切换到主目标 ' + (index + 1) + '：' + escapeHtml(truncate(goal.title, 20)) + '" title="' + escapeHtml(truncate(goal.title, 30)) + '"></button>'
+    )).join('');
+    els.kanbanPosition.textContent = '1 / ' + state.goals.length;
+    requestAnimationFrame(updateKanbanPosition);
+  }
+
+  function updateKanbanPosition() {
+    if (state.prefs.viewMode !== 'kanban' || !els.goalsTree || !els.kanbanNav || els.kanbanNav.hidden) return;
+    const cards = $$(':scope > .goal-branch', els.goalsTree);
+    if (!cards.length) return;
+    const gap = parseFloat(window.getComputedStyle(els.goalsTree).columnGap) || 16;
+    const cardWidth = cards[0].getBoundingClientRect().width + gap;
+    const index = clamp(Math.round(els.goalsTree.scrollLeft / Math.max(1, cardWidth)), 0, cards.length - 1);
+    els.kanbanPosition.textContent = (index + 1) + ' / ' + cards.length;
+    els.kanbanPrev.disabled = index <= 0;
+    els.kanbanNext.disabled = index >= cards.length - 1;
+    $$('.kanban-dot', els.kanbanDots).forEach((dot, i) => {
+      dot.classList.toggle('is-active', i === index);
+      if (i === index) dot.setAttribute('aria-current', 'true');
+      else dot.removeAttribute('aria-current');
+    });
+    const activeDot = $('.kanban-dot.is-active', els.kanbanDots);
+    if (activeDot) {
+      const left = activeDot.offsetLeft - els.kanbanDots.clientWidth / 2 + activeDot.offsetWidth / 2;
+      els.kanbanDots.scrollTo({ left: Math.max(0, left), behavior: 'smooth' });
+    }
+  }
+
+  function scrollToKanban(index) {
+    if (!els.goalsTree) return;
+    const cards = $$(':scope > .goal-branch', els.goalsTree);
+    if (!cards.length) return;
+    const gap = parseFloat(window.getComputedStyle(els.goalsTree).columnGap) || 16;
+    const cardWidth = cards[0].getBoundingClientRect().width + gap;
+    const targetIndex = clamp(index, 0, cards.length - 1);
+    els.goalsTree.scrollTo({ left: targetIndex * cardWidth, behavior: 'smooth' });
+  }
+
+  function moveKanban(delta) {
+    if (!els.goalsTree) return;
+    const cards = $$(':scope > .goal-branch', els.goalsTree);
+    if (!cards.length) return;
+    const gap = parseFloat(window.getComputedStyle(els.goalsTree).columnGap) || 16;
+    const cardWidth = cards[0].getBoundingClientRect().width + gap;
+    const current = Math.round(els.goalsTree.scrollLeft / Math.max(1, cardWidth));
+    scrollToKanban(current + delta);
   }
 
   function openNodeMenu(id, trigger) {
@@ -3852,6 +5260,7 @@
     if (!button || button.disabled) return;
     const action = button.dataset.appAction;
     closePopovers();
+    if (action === 'sync') openSyncModal();
     if (action === 'export') exportData();
     if (action === 'import') els.importFile.click();
     if (action === 'sample') loadSample();
@@ -3960,6 +5369,7 @@
         target: target || 1,
         unit: unit || '',
         color: options.color || '',
+        emoji: options.emoji || '',
         startDate: options.startDate || '',
         endDate: options.endDate || '',
         collapsed: Boolean(collapsed),
@@ -3971,29 +5381,480 @@
     return [
       make('自我成长', 'check', false, 0, 1, '', [
         make('英语进阶', 'check', false, 0, 1, '', [
-          make('每天背单词', 'count', false, 18, 30, '天', [], false, { color: '#668296' }),
-          make('完成听力练习', 'count', false, 4, 10, '次', []),
+          make('每天背单词', 'count', false, 18, 30, '天', [], false, { color: '#668296', emoji: '📘' }),
+          make('完成听力练习', 'count', false, 4, 10, '次', [], false, { emoji: '🎧' }),
           make('读完《原子习惯》', 'count', false, 7, 12, '章', [], false, {
-            color: '#c2934f', startDate: localDateOffset(-20), endDate: localDateOffset(40)
+            color: '#c2934f', emoji: '📖', startDate: localDateOffset(-20), endDate: localDateOffset(40)
           })
-        ], false, { startDate: localDateOffset(-30), endDate: localDateOffset(120) }),
+        ], false, { startDate: localDateOffset(-30), endDate: localDateOffset(120), emoji: '🌿' }),
         make('健康生活', 'check', false, 0, 1, '', [
-          make('每周跑步', 'count', false, 3, 8, '次', [], false, { color: '#c57c55' }),
-          make('23:30 前入睡', 'check', true, 0, 1, '', []),
-          make('每周日复盘', 'check', false, 0, 1, '', [])
-        ]),
+          make('每周跑步', 'count', false, 3, 8, '次', [], false, { color: '#c57c55', emoji: '🏃' }),
+          make('23:30 前入睡', 'check', true, 0, 1, '', [], false, { emoji: '🌙' }),
+          make('每周日复盘', 'check', false, 0, 1, '', [], false, { emoji: '🗒️' })
+        ], false, { emoji: '💪' }),
         make('完成一次半程马拉松', 'check', false, 0, 1, '', [], false, {
-          startDate: localDateOffset(-20), endDate: localDateOffset(150)
+          emoji: '🏅', startDate: localDateOffset(-20), endDate: localDateOffset(150)
         })
-      ], false, { startDate: localDateOffset(-45), endDate: localDateOffset(180) }),
+      ], false, { startDate: localDateOffset(-45), endDate: localDateOffset(180), emoji: '🌱' }),
       make('旅行计划', 'check', false, 0, 1, '', [
         make('存够旅行基金', 'count', false, 6800, 12000, '元', [], false, {
-          color: '#4f7467', startDate: localDateOffset(-120), endDate: localDateOffset(220)
+          color: '#4f7467', emoji: '💰', startDate: localDateOffset(-120), endDate: localDateOffset(220)
         }),
-        make('办理签证', 'check', true, 0, 1, '', []),
-        make('整理京都地图与清单', 'check', false, 0, 1, '', [])
-      ], false, { startDate: localDateOffset(-70), endDate: localDateOffset(150) })
+        make('办理签证', 'check', true, 0, 1, '', [], false, { emoji: '🛂' }),
+        make('整理京都地图与清单', 'check', false, 0, 1, '', [], false, { emoji: '🗺️' })
+      ], false, { startDate: localDateOffset(-70), endDate: localDateOffset(150), emoji: '✈️' })
     ];
+  }
+
+  function createDefaultSyncConfig() {
+    const suffix = Math.random().toString(36).slice(2, 8);
+    return {
+      mode: 'webdav',
+      webdav: { url: '', username: '', password: '', path: 'shijie/goals.json', auto: false },
+      lan: { url: '', room: 'shijie-' + suffix, auto: false },
+      lastSyncAt: 0
+    };
+  }
+
+  function loadSyncConfig() {
+    try {
+      const raw = localStorage.getItem(SYNC_CONFIG_KEY);
+      if (!raw) return;
+      const parsed = JSON.parse(raw);
+      if (!parsed || typeof parsed !== 'object') return;
+      const defaults = createDefaultSyncConfig();
+      syncConfig = {
+        mode: parsed.mode === 'lan' ? 'lan' : 'webdav',
+        webdav: {
+          url: typeof parsed.webdav?.url === 'string' ? parsed.webdav.url : '',
+          username: typeof parsed.webdav?.username === 'string' ? parsed.webdav.username : '',
+          password: typeof parsed.webdav?.password === 'string' ? parsed.webdav.password : '',
+          path: typeof parsed.webdav?.path === 'string' && parsed.webdav.path.trim() ? parsed.webdav.path : defaults.webdav.path,
+          auto: Boolean(parsed.webdav?.auto)
+        },
+        lan: {
+          url: typeof parsed.lan?.url === 'string' ? parsed.lan.url : '',
+          room: typeof parsed.lan?.room === 'string' && parsed.lan.room.trim() ? parsed.lan.room : defaults.lan.room,
+          auto: Boolean(parsed.lan?.auto)
+        },
+        lastSyncAt: Number(parsed.lastSyncAt) || 0
+      };
+    } catch (error) {
+      console.warn('读取同步设置失败', error);
+    }
+  }
+
+  function persistSyncConfig() {
+    try {
+      localStorage.setItem(SYNC_CONFIG_KEY, JSON.stringify(syncConfig));
+    } catch (error) {
+      console.warn('保存同步设置失败', error);
+      showToast('同步设置无法保存到本地', 'error');
+    }
+  }
+
+  function populateSyncSettings() {
+    if (!els.syncWebdavUrl) return;
+    els.syncWebdavUrl.value = syncConfig.webdav.url || '';
+    els.syncWebdavUsername.value = syncConfig.webdav.username || '';
+    els.syncWebdavPassword.value = syncConfig.webdav.password || '';
+    els.syncWebdavPath.value = syncConfig.webdav.path || 'shijie/goals.json';
+    els.syncWebdavAuto.checked = Boolean(syncConfig.webdav.auto);
+    els.syncLanUrl.value = syncConfig.lan.url || '';
+    els.syncLanRoom.value = syncConfig.lan.room || '';
+    els.syncLanAuto.checked = Boolean(syncConfig.lan.auto);
+    setSyncTab(syncConfig.mode);
+  }
+
+  function setSyncTab(mode) {
+    ui.syncTab = mode === 'lan' ? 'lan' : 'webdav';
+    $$('[data-sync-tab]', els.syncModal).forEach((button) => {
+      const active = button.dataset.syncTab === ui.syncTab;
+      button.classList.toggle('is-active', active);
+      button.setAttribute('aria-selected', String(active));
+    });
+    els.syncWebdavPane.hidden = ui.syncTab !== 'webdav';
+    els.syncLanPane.hidden = ui.syncTab !== 'lan';
+  }
+
+  function openSyncModal() {
+    closePopovers();
+    closeDatePicker();
+    closeColorPicker();
+    ui.syncReturnFocus = document.activeElement;
+    ui.syncTab = syncConfig.mode;
+    populateSyncSettings();
+    refreshSyncStatus();
+    els.syncModal.hidden = false;
+    els.syncBtn.setAttribute('aria-expanded', 'true');
+    updateBodyLock();
+    setTimeout(() => {
+      const first = ui.syncTab === 'webdav' ? els.syncWebdavUrl : els.syncLanUrl;
+      first.focus({ preventScroll: true });
+    }, 60);
+  }
+
+  function closeSyncModal() {
+    if (els.syncModal.hidden) return;
+    els.syncModal.hidden = true;
+    els.syncBtn.setAttribute('aria-expanded', 'false');
+    updateBodyLock();
+    if (ui.syncReturnFocus && ui.syncReturnFocus.isConnected) {
+      try { ui.syncReturnFocus.focus({ preventScroll: true }); } catch (error) { /* noop */ }
+    }
+  }
+
+  function readSyncForm() {
+    syncConfig.webdav = {
+      url: els.syncWebdavUrl.value.trim(),
+      username: els.syncWebdavUsername.value.trim(),
+      password: els.syncWebdavPassword.value,
+      path: els.syncWebdavPath.value.trim() || 'shijie/goals.json',
+      auto: els.syncWebdavAuto.checked
+    };
+    syncConfig.lan = {
+      url: els.syncLanUrl.value.trim(),
+      room: els.syncLanRoom.value.trim(),
+      auto: els.syncLanAuto.checked
+    };
+    syncConfig.mode = ui.syncTab;
+  }
+
+  function saveSyncSettings(showSavedToast) {
+    readSyncForm();
+    persistSyncConfig();
+    updateSyncButtonState();
+    refreshSyncStatus();
+    if (showSavedToast) showToast('同步设置已保存');
+    const active = currentSyncSettings();
+    if (active.auto && isSyncConfigured()) {
+      setTimeout(() => autoSync(false), 1200);
+    }
+    return true;
+  }
+
+  function handleSyncModalClick(event) {
+    const tab = event.target.closest('[data-sync-tab]');
+    if (tab) {
+      setSyncTab(tab.dataset.syncTab);
+      return;
+    }
+    const actionButton = event.target.closest('[data-sync-action]');
+    if (actionButton && !actionButton.disabled) {
+      runSyncAction(actionButton.dataset.syncAction);
+    }
+  }
+
+  function currentSyncSettings() {
+    return syncConfig.mode === 'lan' ? syncConfig.lan : syncConfig.webdav;
+  }
+
+  function isSyncConfigured() {
+    const cfg = currentSyncSettings();
+    if (syncConfig.mode === 'lan') return Boolean(cfg.url && cfg.room);
+    return Boolean(cfg.url);
+  }
+
+  function isAutoSyncEnabled() {
+    const cfg = currentSyncSettings();
+    return Boolean(cfg.auto && isSyncConfigured());
+  }
+
+  function updateSyncButtonState() {
+    if (!els.syncBtn) return;
+    let state = 'idle';
+    if (ui.syncBusy) state = 'syncing';
+    else if (ui.syncState === 'error') state = 'error';
+    else if (isSyncConfigured()) state = 'ready';
+    els.syncBtn.dataset.state = state;
+    const label = state === 'syncing' ? '同步中' : (state === 'error' ? '同步异常' : (state === 'ready' ? '同步已配置' : '同步设置'));
+    els.syncBtn.title = label;
+    els.syncBtn.setAttribute('aria-label', label);
+  }
+
+  function setSyncStatus(message, tone) {
+    if (!els.syncStatus) return;
+    ui.syncState = tone || 'idle';
+    els.syncStatus.dataset.state = ui.syncState;
+    els.syncStatusText.textContent = message;
+    updateSyncButtonState();
+  }
+
+  function refreshSyncStatus() {
+    if (!els.syncStatus) return;
+    if (ui.syncBusy) return;
+    if (!isSyncConfigured()) {
+      setSyncStatus('尚未配置同步。填写服务地址后即可上传或下载数据。', 'idle');
+      return;
+    }
+    const last = syncConfig.lastSyncAt
+      ? ' · 上次同步 ' + new Date(syncConfig.lastSyncAt).toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })
+      : '';
+    setSyncStatus((syncConfig.mode === 'lan' ? '局域网同步已配置' : 'WebDAV 同步已配置') + last, 'success');
+  }
+
+  function setSyncBusy(busy) {
+    ui.syncBusy = busy;
+    $$('[data-sync-action]', els.syncModal).forEach((button) => { button.disabled = busy; });
+    els.syncSave.disabled = busy;
+    updateSyncButtonState();
+  }
+
+  function startSyncTimer() {
+    if (syncTimer) clearInterval(syncTimer);
+    syncTimer = setInterval(() => {
+      if (isAutoSyncEnabled()) autoSync(false);
+    }, 60000);
+    setTimeout(() => {
+      if (isAutoSyncEnabled()) autoSync(false);
+    }, 9000);
+  }
+
+  function basicAuthHeader(username, password) {
+    if (!username && !password) return {};
+    const bytes = new TextEncoder().encode((username || '') + ':' + (password || ''));
+    let binary = '';
+    bytes.forEach((byte) => { binary += String.fromCharCode(byte); });
+    return { Authorization: 'Basic ' + btoa(binary) };
+  }
+
+  function buildWebdavUrl() {
+    const base = (syncConfig.webdav.url || '').trim().replace(/\/+$/, '');
+    const path = (syncConfig.webdav.path || 'shijie/goals.json').trim().replace(/^\/+/, '');
+    if (!base) throw new Error('请填写 WebDAV 服务器地址');
+    if (!path) throw new Error('请填写远程文件路径');
+    return base + '/' + path.split('/').map((part) => encodeURIComponent(part)).join('/');
+  }
+
+  function buildLanUrl(path) {
+    const base = (syncConfig.lan.url || '').trim().replace(/\/+$/, '');
+    if (!base) throw new Error('请填写局域网服务地址');
+    return base + path;
+  }
+
+  function lanSyncUrl() {
+    return buildLanUrl('/api/sync?room=' + encodeURIComponent(syncConfig.lan.room || ''));
+  }
+
+  async function fetchWithTimeout(url, options, timeout) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeout || 20000);
+    try {
+      return await fetch(url, Object.assign({}, options, { signal: controller.signal, cache: 'no-store' }));
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
+  function httpErrorMessage(response) {
+    if (response.status === 401 || response.status === 403) return '认证失败，请检查用户名和密码';
+    if (response.status === 404) return '远程文件不存在';
+    if (response.status === 409) return '远程目录不存在，请先在 WebDAV 中创建目录';
+    if (response.status === 413) return '远程服务拒绝：数据太大';
+    return '请求失败（HTTP ' + response.status + '）';
+  }
+
+  async function testRemoteConnection() {
+    if (syncConfig.mode === 'lan') {
+      const response = await fetchWithTimeout(buildLanUrl('/api/health'), { method: 'GET' }, 12000);
+      if (!response.ok) throw new Error(httpErrorMessage(response));
+      return '局域网同步服务连接成功';
+    }
+    const url = buildWebdavUrl();
+    const headers = Object.assign({ Accept: 'application/json' }, basicAuthHeader(syncConfig.webdav.username, syncConfig.webdav.password));
+    const response = await fetchWithTimeout(url, { method: 'GET', headers }, 15000);
+    if (response.ok) return 'WebDAV 连接成功，已找到远程备份';
+    if (response.status === 404) return 'WebDAV 连接成功，远程备份尚未创建';
+    throw new Error(httpErrorMessage(response));
+  }
+
+  async function readRemotePayload() {
+    let response;
+    if (syncConfig.mode === 'lan') {
+      response = await fetchWithTimeout(lanSyncUrl(), { method: 'GET', headers: { Accept: 'application/json' } }, 15000);
+      if (response.status === 404) return null;
+      if (!response.ok) throw new Error(httpErrorMessage(response));
+    } else {
+      const headers = Object.assign({ Accept: 'application/json' }, basicAuthHeader(syncConfig.webdav.username, syncConfig.webdav.password));
+      response = await fetchWithTimeout(buildWebdavUrl(), { method: 'GET', headers }, 20000);
+      if (response.status === 404) return null;
+      if (!response.ok) throw new Error(httpErrorMessage(response));
+    }
+    const text = await response.text();
+    if (!text.trim()) return null;
+    try {
+      return JSON.parse(text);
+    } catch (error) {
+      throw new Error('远程数据格式不正确');
+    }
+  }
+
+  async function writeRemotePayload(payload) {
+    const body = JSON.stringify(payload);
+    if (syncConfig.mode === 'lan') {
+      const response = await fetchWithTimeout(lanSyncUrl(), {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json;charset=utf-8', Accept: 'application/json' },
+        body
+      }, 20000);
+      if (!response.ok) throw new Error(httpErrorMessage(response));
+      return;
+    }
+    const headers = Object.assign({
+      'Content-Type': 'application/json;charset=utf-8',
+      Accept: 'application/json'
+    }, basicAuthHeader(syncConfig.webdav.username, syncConfig.webdav.password));
+    const response = await fetchWithTimeout(buildWebdavUrl(), { method: 'PUT', headers, body }, 25000);
+    if (!response.ok) throw new Error(httpErrorMessage(response));
+  }
+
+  function buildSyncPayload() {
+    return {
+      app: APP_ID,
+      version: 2,
+      updatedAt: state.updatedAt || Date.now(),
+      goals: state.goals,
+      noteHtml: sanitizeNoteHtml(state.noteHtml),
+      prefs: state.prefs
+    };
+  }
+
+  function normalizeRemotePayload(raw) {
+    if (!raw || typeof raw !== 'object' || !Array.isArray(raw.goals)) {
+      throw new Error('远程数据格式不正确');
+    }
+    const prefs = raw.prefs && typeof raw.prefs === 'object' ? raw.prefs : {};
+    return {
+      goals: normalizeForest(raw.goals),
+      noteHtml: sanitizeNoteHtml(typeof raw.noteHtml === 'string' ? raw.noteHtml : ''),
+      prefs: {
+        viewMode: normalizeViewMode(prefs.viewMode),
+        progressMode: prefs.progressMode === 'tint' ? 'tint' : 'bar'
+      },
+      updatedAt: Number(raw.updatedAt) || 0
+    };
+  }
+
+  function applyRemotePayload(raw, options) {
+    const payload = normalizeRemotePayload(raw);
+    if (!els.detailModal.hidden) closeDetail();
+    if (!els.goalModal.hidden) closeGoalModal();
+    state.goals = payload.goals;
+    state.noteHtml = payload.noteHtml;
+    state.prefs = payload.prefs;
+    state.updatedAt = payload.updatedAt || Date.now();
+    persist({ timestamp: state.updatedAt });
+    render();
+    renderNote();
+    if (!options || !options.silent) showToast('已从远程同步最新数据');
+  }
+
+  function hasLocalSyncContent() {
+    return state.goals.length > 0 || sanitizeNoteHtml(state.noteHtml).trim().length > 0;
+  }
+
+  function markSyncComplete() {
+    syncConfig.lastSyncAt = Date.now();
+    persistSyncConfig();
+    refreshSyncStatus();
+  }
+
+  async function runSyncAction(action) {
+    if (ui.syncBusy) return;
+    saveSyncSettings(false);
+    if (!isSyncConfigured()) {
+      setSyncStatus('请先填写服务地址和必要信息，再保存设置。', 'error');
+      return;
+    }
+    setSyncBusy(true);
+    setSyncStatus(action === 'test' ? '正在测试连接…' : '正在同步，请稍候…', 'working');
+    try {
+      if (action === 'test') {
+        const message = await testRemoteConnection();
+        setSyncStatus(message, 'success');
+        return;
+      }
+      if (action === 'push') {
+        await writeRemotePayload(buildSyncPayload());
+        markSyncComplete();
+        setSyncStatus('本地数据已上传到远程。', 'success');
+        showToast('同步上传完成');
+        return;
+      }
+      if (action === 'pull') {
+        const raw = await readRemotePayload();
+        if (!raw) {
+          setSyncStatus('远程还没有可下载的数据。先上传一次即可创建备份。', 'idle');
+          return;
+        }
+        if (hasLocalSyncContent()) {
+          const ok = await askConfirm({
+            title: '从远程下载并覆盖？',
+            message: '远程数据将替换本机的目标、便签内容和显示设置。此操作无法撤销。',
+            confirmText: '下载覆盖',
+            danger: true
+          });
+          if (!ok) {
+            setSyncStatus('已取消下载。', 'idle');
+            return;
+          }
+        }
+        applyRemotePayload(raw);
+        markSyncComplete();
+        setSyncStatus('已从远程下载并覆盖本地数据。', 'success');
+      }
+    } catch (error) {
+      const message = error && error.name === 'AbortError'
+        ? '连接超时，请检查服务地址和网络'
+        : (error.message || '同步失败');
+      setSyncStatus('同步失败：' + message, 'error');
+      showToast('同步失败：' + message, 'error');
+    } finally {
+      setSyncBusy(false);
+    }
+  }
+
+  async function autoSync(silent) {
+    if (ui.syncBusy || !isAutoSyncEnabled() || !isSyncConfigured()) return;
+    if (!els.goalModal.hidden || !els.detailModal.hidden || !els.confirmModal.hidden) return;
+    if (document.activeElement && els.noteEditor.contains(document.activeElement)) return;
+    setSyncBusy(true);
+    try {
+      const raw = await readRemotePayload();
+      if (!raw) {
+        if (hasLocalSyncContent()) {
+          await writeRemotePayload(buildSyncPayload());
+          syncConfig.lastSyncAt = Date.now();
+          persistSyncConfig();
+          setSyncStatus('自动同步：已在远程创建备份。', 'success');
+        }
+        return;
+      }
+      const remote = normalizeRemotePayload(raw);
+      const remoteAt = remote.updatedAt || 0;
+      const localAt = state.updatedAt || 0;
+      if (remoteAt > localAt + 1500) {
+        applyRemotePayload(remote, { silent: true });
+        syncConfig.lastSyncAt = Date.now();
+        persistSyncConfig();
+        setSyncStatus('自动同步：已拉取远程更新。', 'success');
+      } else if (localAt > remoteAt + 1500) {
+        await writeRemotePayload(buildSyncPayload());
+        syncConfig.lastSyncAt = Date.now();
+        persistSyncConfig();
+        setSyncStatus('自动同步：已上传本地更新。', 'success');
+      } else {
+        syncConfig.lastSyncAt = Date.now();
+        persistSyncConfig();
+        setSyncStatus('自动同步：数据已是最新。', 'success');
+      }
+    } catch (error) {
+      const message = error && error.name === 'AbortError' ? '连接超时' : (error.message || '同步失败');
+      setSyncStatus('自动同步失败：' + message, 'error');
+      if (!silent) console.warn('自动同步失败', error);
+    } finally {
+      setSyncBusy(false);
+    }
   }
 
   function exportData() {
@@ -4005,6 +5866,7 @@
       app: APP_ID,
       version: 2,
       exportedAt: new Date().toISOString(),
+      updatedAt: state.updatedAt,
       goals: state.goals,
       noteHtml: sanitizeNoteHtml(state.noteHtml),
       prefs: state.prefs
@@ -4054,7 +5916,7 @@
       state.noteHtml = importedNote;
       if (data && !Array.isArray(data)) {
         if (data.prefs && typeof data.prefs === 'object') {
-          state.prefs.viewMode = data.prefs.viewMode === 'double' ? 'double' : 'single';
+          state.prefs.viewMode = normalizeViewMode(data.prefs.viewMode);
           state.prefs.progressMode = data.prefs.progressMode === 'tint' ? 'tint' : 'bar';
         }
       }
@@ -4131,7 +5993,7 @@
         : '';
       return '<div class="preview-row" style="--d:' + Math.min(row.depth, 20) + '">' +
         '<span class="preview-marker' + markerClass + '"></span>' +
-        '<span class="preview-title">' + escapeHtml(row.node.title) + '</span>' +
+        '<span class="preview-title">' + (row.node.emoji ? escapeHtml(row.node.emoji) + ' ' : '') + escapeHtml(row.node.title) + '</span>' +
         badge +
       '</div>';
     }).join('') + (rows.length > limit ? '<div class="preview-more">还有 ' + (rows.length - limit) + ' 个目标未显示</div>' : '');
@@ -4146,6 +6008,8 @@
 
   function closeGoalModal() {
     if (els.goalModal.hidden) return;
+    closeDatePicker();
+    closeColorPicker();
     els.goalModal.hidden = true;
     ui.modalMode = null;
     ui.addParentId = null;
@@ -4228,9 +6092,10 @@
     els.modalTitle.textContent = hasChildren ? '编辑主目标' : '编辑目标';
     els.submitBtn.textContent = '保存修改';
     els.editTitle.value = goal.title;
+    els.editEmoji.value = goal.emoji || '';
     els.editStartDate.value = goal.startDate || '';
     els.editEndDate.value = goal.endDate || '';
-    updateClearDatesState();
+    updateDateTriggers();
     ui.editColor = normalizeHexColor(goal.color);
     updateColorPicker();
     const checkRadio = $('input[name="goal-type"][value="check"]');
@@ -4267,7 +6132,8 @@
   function clearEditDates() {
     els.editStartDate.value = '';
     els.editEndDate.value = '';
-    updateClearDatesState();
+    updateDateTriggers();
+    closeDatePicker();
     hideFormError();
   }
 
@@ -4293,12 +6159,12 @@
     const endDate = normalizeDateValue(els.editEndDate.value);
     if ((startDate && !endDate) || (!startDate && endDate)) {
       showFormError('开始日期和结束日期需要同时设置，也可以点击「清除期限」不设时间。');
-      (startDate ? els.editEndDate : els.editStartDate).focus();
+      (startDate ? els.editEndDateTrigger : els.editStartDateTrigger).focus();
       return;
     }
     if (startDate && endDate && endDate < startDate) {
       showFormError('结束日期不能早于开始日期。');
-      els.editEndDate.focus();
+      els.editEndDateTrigger.focus();
       return;
     }
     const hasChildren = goal.children.length > 0;
@@ -4329,6 +6195,7 @@
       }
     }
     goal.title = title.slice(0, 240);
+    goal.emoji = normalizeEmoji(els.editEmoji.value);
     goal.startDate = startDate;
     goal.endDate = endDate;
     goal.color = normalizeHexColor(ui.editColor);
@@ -4375,7 +6242,7 @@
   }
 
   function updateBodyLock() {
-    const shouldLock = !els.goalModal.hidden || !els.confirmModal.hidden;
+    const shouldLock = !els.goalModal.hidden || !els.confirmModal.hidden || !els.detailModal.hidden || !els.syncModal.hidden;
     document.body.classList.toggle('modal-open', shouldLock);
   }
 
@@ -4386,6 +6253,14 @@
     if (event.key === 'Escape') {
       if (dragState.active) {
         cleanupDrag();
+        return;
+      }
+      if (!els.datePopover.hidden) {
+        closeDatePicker();
+        return;
+      }
+      if (!els.colorPopover.hidden) {
+        closeColorPicker();
         return;
       }
       if (!els.confirmModal.hidden) {
@@ -4400,10 +6275,22 @@
         closePopovers();
         return;
       }
+      if (!els.syncModal.hidden) {
+        closeSyncModal();
+        return;
+      }
+      if (!els.detailModal.hidden) {
+        closeDetail();
+        return;
+      }
     }
 
     if (event.key !== 'Tab') return;
-    const activeModal = !els.confirmModal.hidden ? els.confirmModal : (!els.goalModal.hidden ? els.goalModal : null);
+    const activeModal = !els.confirmModal.hidden
+      ? els.confirmModal
+      : (!els.goalModal.hidden
+        ? els.goalModal
+        : (!els.syncModal.hidden ? els.syncModal : (!els.detailModal.hidden ? els.detailModal : null)));
     if (!activeModal) return;
     const dialog = $('.modal', activeModal);
     if (!dialog) return;
