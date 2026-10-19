@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover, shrink-to-fit=no">
 <meta name="theme-color" content="#f6efe1">
+<link rel="icon" type="image/png" href="favicon.png">
 <meta name="description" content="拾阶 · 支持无限层级、自动汇总进度、时间期限、拖拽排序、单双栏与便签的目标管理工具。">
 <title>拾阶 · 目标进度</title>
 <style>
@@ -631,27 +632,18 @@
     flex: none;
     border-radius: 50%;
     background: conic-gradient(var(--count-accent) var(--p), #e9dfcd 0);
-    box-shadow: inset 0 0 0 1px rgba(167, 129, 95, .05);
+    box-shadow: inset 0 0 0 1px rgba(104, 85, 50, .09), 0 1px 2px rgba(90, 70, 35, .06);
+    overflow: hidden;
   }
   .count-orb::before {
     content: "";
     position: absolute;
-    inset: 4px;
+    inset: 0;
     border-radius: 50%;
-    background: #fffaf0;
+    background: radial-gradient(circle at 33% 26%, rgba(255, 255, 255, .3), rgba(255, 255, 255, .05) 39%, transparent 60%);
+    pointer-events: none;
   }
-  .count-orb::after {
-    content: "";
-    position: absolute;
-    left: 50%; top: 50%;
-    width: 5px; height: 5px;
-    border-radius: 50%;
-    background: #c8b79e;
-    transform: translate(-50%, -50%);
-  }
-  .count-orb.is-complete { background: conic-gradient(var(--count-accent) 100%, var(--count-accent) 0); }
-  .count-orb.is-complete::before { background: #fffaf0; }
-  .count-orb.is-complete::after { background: var(--count-accent); }
+  .count-orb.is-complete { background: conic-gradient(var(--count-accent) 0 100%); }
   .goal-branch.is-root > .goal-row .count-orb { width: 29px; height: 29px; }
 
   .goal-body { flex: 1 1 auto; min-width: 0; }
@@ -2654,6 +2646,10 @@
             <label for="sync-webdav-url">服务器地址</label>
             <input class="text-input" id="sync-webdav-url" type="url" autocomplete="url" placeholder="https://dav.example.com/remote.php/dav/files/name/">
           </div>
+          <div class="sync-field">
+            <label for="sync-webdav-proxy">本机代理地址（可选，解决跨域失败）</label>
+            <input class="text-input" id="sync-webdav-proxy" type="url" autocomplete="off" placeholder="http://127.0.0.1:8787">
+          </div>
           <div class="sync-grid-2">
             <div class="sync-field">
               <label for="sync-webdav-username">用户名</label>
@@ -2673,7 +2669,7 @@
             <span class="sync-switch" aria-hidden="true"></span>
             <span>自动同步（每 60 秒）</span>
           </label>
-          <p class="sync-hint">支持 Nextcloud、坚果云、群晖等 WebDAV 服务。服务器需要允许此页面的跨域请求（CORS）。凭据仅保存在当前浏览器。</p>
+          <p class="sync-hint">支持 Nextcloud、坚果云、群晖等 WebDAV 服务。凭据仅保存在当前浏览器。若提示 <code>Failed to fetch</code>，通常是 WebDAV 未开放浏览器跨域（CORS；坚果云即属于这种情况）：请在运行网页的电脑上执行 <code>python lan-sync-server.py</code>，并在上方“本机代理地址”填写 <code>http://127.0.0.1:8787</code>。</p>
         </div>
         <div class="sync-actions">
           <button class="btn btn-ghost" type="button" data-sync-action="test">测试连接</button>
@@ -3072,6 +3068,7 @@
       syncWebdavPane: $('#sync-webdav-pane'),
       syncLanPane: $('#sync-lan-pane'),
       syncWebdavUrl: $('#sync-webdav-url'),
+      syncWebdavProxy: $('#sync-webdav-proxy'),
       syncWebdavUsername: $('#sync-webdav-username'),
       syncWebdavPassword: $('#sync-webdav-password'),
       syncWebdavPath: $('#sync-webdav-path'),
@@ -5410,7 +5407,7 @@
     const suffix = Math.random().toString(36).slice(2, 8);
     return {
       mode: 'webdav',
-      webdav: { url: '', username: '', password: '', path: 'shijie/goals.json', auto: false },
+      webdav: { url: '', proxy: '', username: '', password: '', path: 'shijie/goals.json', auto: false },
       lan: { url: '', room: 'shijie-' + suffix, auto: false },
       lastSyncAt: 0
     };
@@ -5427,6 +5424,7 @@
         mode: parsed.mode === 'lan' ? 'lan' : 'webdav',
         webdav: {
           url: typeof parsed.webdav?.url === 'string' ? parsed.webdav.url : '',
+          proxy: typeof parsed.webdav?.proxy === 'string' ? parsed.webdav.proxy : '',
           username: typeof parsed.webdav?.username === 'string' ? parsed.webdav.username : '',
           password: typeof parsed.webdav?.password === 'string' ? parsed.webdav.password : '',
           path: typeof parsed.webdav?.path === 'string' && parsed.webdav.path.trim() ? parsed.webdav.path : defaults.webdav.path,
@@ -5456,6 +5454,7 @@
   function populateSyncSettings() {
     if (!els.syncWebdavUrl) return;
     els.syncWebdavUrl.value = syncConfig.webdav.url || '';
+    els.syncWebdavProxy.value = syncConfig.webdav.proxy || '';
     els.syncWebdavUsername.value = syncConfig.webdav.username || '';
     els.syncWebdavPassword.value = syncConfig.webdav.password || '';
     els.syncWebdavPath.value = syncConfig.webdav.path || 'shijie/goals.json';
@@ -5507,6 +5506,7 @@
   function readSyncForm() {
     syncConfig.webdav = {
       url: els.syncWebdavUrl.value.trim(),
+      proxy: els.syncWebdavProxy.value.trim().replace(/\/+$/, ''),
       username: els.syncWebdavUsername.value.trim(),
       password: els.syncWebdavPassword.value,
       path: els.syncWebdavPath.value.trim() || 'shijie/goals.json',
@@ -5646,44 +5646,106 @@
     }
   }
 
-  function httpErrorMessage(response) {
-    if (response.status === 401 || response.status === 403) return '认证失败，请检查用户名和密码';
-    if (response.status === 404) return '远程文件不存在';
-    if (response.status === 409) return '远程目录不存在，请先在 WebDAV 中创建目录';
-    if (response.status === 413) return '远程服务拒绝：数据太大';
-    return '请求失败（HTTP ' + response.status + '）';
+  function httpStatusMessage(status) {
+    if (status === 401 || status === 403) return '认证失败，请检查用户名和密码';
+    if (status === 404) return '远程文件不存在';
+    if (status === 409) return '远程目录不存在，请先在 WebDAV 中创建目录';
+    if (status === 413) return '远程服务拒绝：数据太大';
+    return '请求失败（HTTP ' + status + '）';
+  }
+
+  async function webdavRequest(method, body) {
+    const url = buildWebdavUrl();
+    const proxy = (syncConfig.webdav.proxy || '').trim().replace(/\/+$/, '');
+    if (proxy) {
+      let response;
+      try {
+        response = await fetchWithTimeout(proxy + '/api/webdav-proxy', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json;charset=utf-8', Accept: 'application/json' },
+          body: JSON.stringify({
+            url,
+            method,
+            username: syncConfig.webdav.username || '',
+            password: syncConfig.webdav.password || '',
+            body: body || ''
+          })
+        }, 30000);
+      } catch (error) {
+        if (error && error.name === 'AbortError') throw error;
+        throw new Error('无法连接本机 WebDAV 代理。请确认已运行 python lan-sync-server.py，且代理地址填写正确。');
+      }
+      let data = null;
+      try { data = await response.json(); } catch (error) { /* noop */ }
+      if (!response.ok) {
+        const detail = data && (data.error || data.detail) ? (data.error || data.detail) : ('HTTP ' + response.status);
+        throw new Error('本机 WebDAV 代理请求失败：' + detail);
+      }
+      const status = Number(data && data.status) || 0;
+      return {
+        status,
+        ok: status >= 200 && status < 300,
+        text: data && typeof data.body === 'string' ? data.body : ''
+      };
+    }
+
+    const headers = Object.assign({
+      Accept: 'application/json'
+    }, body ? { 'Content-Type': 'application/json;charset=utf-8' } : {}, basicAuthHeader(syncConfig.webdav.username, syncConfig.webdav.password));
+    let response;
+    try {
+      response = await fetchWithTimeout(url, {
+        method,
+        headers,
+        ...(body ? { body } : {})
+      }, 25000);
+    } catch (error) {
+      if (error && error.name === 'AbortError') throw error;
+      let host = '';
+      try { host = new URL(url).hostname; } catch (parseError) { /* noop */ }
+      const providerHint = /(^|\.)jianguoyun\.com$/i.test(host)
+        ? '坚果云 WebDAV 不返回跨域许可（CORS），网页无法直连，必须使用本机代理。'
+        : '常见原因：WebDAV 未开放跨域（CORS）、地址或证书有误、HTTPS 页面访问 HTTP 地址。';
+      throw new Error('无法连接 WebDAV（Failed to fetch）。' + providerHint + ' 可在“本机代理地址”填写 http://127.0.0.1:8787 后重试。');
+    }
+    return {
+      status: response.status,
+      ok: response.ok,
+      text: await response.text()
+    };
   }
 
   async function testRemoteConnection() {
     if (syncConfig.mode === 'lan') {
       const response = await fetchWithTimeout(buildLanUrl('/api/health'), { method: 'GET' }, 12000);
-      if (!response.ok) throw new Error(httpErrorMessage(response));
+      if (!response.ok) throw new Error(httpStatusMessage(response.status));
       return '局域网同步服务连接成功';
     }
-    const url = buildWebdavUrl();
-    const headers = Object.assign({ Accept: 'application/json' }, basicAuthHeader(syncConfig.webdav.username, syncConfig.webdav.password));
-    const response = await fetchWithTimeout(url, { method: 'GET', headers }, 15000);
-    if (response.ok) return 'WebDAV 连接成功，已找到远程备份';
-    if (response.status === 404) return 'WebDAV 连接成功，远程备份尚未创建';
-    throw new Error(httpErrorMessage(response));
+    const result = await webdavRequest('GET');
+    if (result.ok) return 'WebDAV 连接成功，已找到远程备份';
+    if (result.status === 404) return 'WebDAV 连接成功，远程备份尚未创建';
+    throw new Error(httpStatusMessage(result.status));
   }
 
   async function readRemotePayload() {
-    let response;
     if (syncConfig.mode === 'lan') {
-      response = await fetchWithTimeout(lanSyncUrl(), { method: 'GET', headers: { Accept: 'application/json' } }, 15000);
+      const response = await fetchWithTimeout(lanSyncUrl(), { method: 'GET', headers: { Accept: 'application/json' } }, 15000);
       if (response.status === 404) return null;
-      if (!response.ok) throw new Error(httpErrorMessage(response));
-    } else {
-      const headers = Object.assign({ Accept: 'application/json' }, basicAuthHeader(syncConfig.webdav.username, syncConfig.webdav.password));
-      response = await fetchWithTimeout(buildWebdavUrl(), { method: 'GET', headers }, 20000);
-      if (response.status === 404) return null;
-      if (!response.ok) throw new Error(httpErrorMessage(response));
+      if (!response.ok) throw new Error(httpStatusMessage(response.status));
+      const text = await response.text();
+      if (!text.trim()) return null;
+      try {
+        return JSON.parse(text);
+      } catch (error) {
+        throw new Error('远程数据格式不正确');
+      }
     }
-    const text = await response.text();
-    if (!text.trim()) return null;
+    const result = await webdavRequest('GET');
+    if (result.status === 404) return null;
+    if (!result.ok) throw new Error(httpStatusMessage(result.status));
+    if (!result.text.trim()) return null;
     try {
-      return JSON.parse(text);
+      return JSON.parse(result.text);
     } catch (error) {
       throw new Error('远程数据格式不正确');
     }
@@ -5697,15 +5759,11 @@
         headers: { 'Content-Type': 'application/json;charset=utf-8', Accept: 'application/json' },
         body
       }, 20000);
-      if (!response.ok) throw new Error(httpErrorMessage(response));
+      if (!response.ok) throw new Error(httpStatusMessage(response.status));
       return;
     }
-    const headers = Object.assign({
-      'Content-Type': 'application/json;charset=utf-8',
-      Accept: 'application/json'
-    }, basicAuthHeader(syncConfig.webdav.username, syncConfig.webdav.password));
-    const response = await fetchWithTimeout(buildWebdavUrl(), { method: 'PUT', headers, body }, 25000);
-    if (!response.ok) throw new Error(httpErrorMessage(response));
+    const result = await webdavRequest('PUT', body);
+    if (!result.ok) throw new Error(httpStatusMessage(result.status));
   }
 
   function buildSyncPayload() {
