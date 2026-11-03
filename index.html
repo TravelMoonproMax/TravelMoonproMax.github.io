@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover, shrink-to-fit=no">
 <meta name="theme-color" content="#f6efe1">
 <link rel="icon" type="image/png" href="favicon.png">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-title" content="拾阶">
 <meta name="description" content="拾阶 · 支持无限层级、自动汇总进度、时间期限、拖拽排序、单双栏与便签的目标管理工具。">
 <title>拾阶 · 目标进度</title>
 <style>
@@ -224,11 +226,15 @@
   .hero {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 360px;
+    grid-template-areas:
+      "copy summary"
+      "note note";
     align-items: end;
-    gap: 52px;
+    gap: 44px 52px;
     padding: 54px 0 44px;
   }
-  .hero-copy { min-width: 0; }
+  .hero-copy { grid-area: copy; min-width: 0; }
+  .dashboard-board { display: contents; }
   .eyebrow {
     display: flex;
     align-items: center;
@@ -284,6 +290,7 @@
 
   /* ---------- Summary ---------- */
   .summary-card {
+    grid-area: summary;
     position: relative;
     overflow: hidden;
     padding: 23px 24px 20px;
@@ -842,7 +849,7 @@
   }
   .goals-tree.is-tint .goal-branch.is-root > .goal-row,
   .goals-tree.is-tint .goal-branch.is-root > .goal-children { position: relative; z-index: 1; }
-  .goals-tree.is-tint .goal-branch.is-root > .goal-children { background: transparent; border-top-color: rgba(211, 196, 169, .55); }
+  .goals-tree.is-tint .goal-branch.is-root > .goal-children { background: transparent; }
   .goals-tree.is-tint .goal-branch.is-root.is-complete > .goal-row { background: transparent; }
   .goals-tree.is-tint .goal-branch:not(.is-root) > .goal-row::before {
     content: "";
@@ -906,17 +913,13 @@
   .goal-children {
     margin-left: 10px;
     padding-left: 12px;
-    border-left: 1px solid rgba(219, 207, 187, .72);
   }
   .goal-branch.is-root > .goal-children {
     margin-left: 0;
     padding: 2px 20px 10px 40px;
-    border-left: 0;
-    border-top: 1px solid rgba(228, 216, 197, .78);
-    background: linear-gradient(180deg, rgba(248, 241, 229, .4), rgba(251, 246, 237, .1));
+    background: transparent;
   }
   .goal-branch.is-root.is-collapsed { overflow: hidden; }
-  .goal-children > .goal-branch + .goal-branch { border-top: 1px solid rgba(225, 213, 194, .58); }
   .goal-branch:not(.is-root) > .goal-row { padding-top: 7px; padding-bottom: 7px; }
   .goal-branch:not(.is-root) > .goal-children { margin-top: 0; margin-bottom: 2px; }
 
@@ -1004,18 +1007,18 @@
 
   /* ---------- Sticky note ---------- */
   .note-card {
+    grid-area: note;
     position: relative;
-    display: grid;
-    grid-template-columns: 224px minmax(0, 1fr);
-    gap: 28px;
-    height: 218px;
-    margin: 0 0 38px;
-    padding: 24px 26px 25px;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    height: 242px;
+    margin: 0;
+    padding: 20px 24px 21px;
     border: 1px solid rgba(222, 205, 157, .9);
     border-radius: 23px;
     background:
-      linear-gradient(90deg, transparent 33px, rgba(191, 117, 82, .12) 33px 34px, transparent 34px),
-      repeating-linear-gradient(180deg, transparent 0 31px, rgba(171, 142, 83, .11) 31px 32px),
+      radial-gradient(circle at 8% 0, rgba(255,255,255,.55), transparent 48%),
       linear-gradient(145deg, #fcf4d9, #f8edc9);
     box-shadow: 0 16px 38px rgba(101, 80, 38, .07), inset 0 1px 0 rgba(255,255,255,.65);
     overflow: visible;
@@ -1034,47 +1037,106 @@
     box-shadow: 0 2px 5px rgba(115, 95, 52, .05);
     pointer-events: none;
   }
-  .note-intro {
-    position: relative;
+  .note-head {
     display: flex;
-    flex-direction: column;
     align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    flex: none;
+    margin-bottom: 7px;
+  }
+  .note-heading {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
     min-width: 0;
-    padding: 2px 3px 0 8px;
+    padding-top: 1px;
   }
   .note-kicker {
-    display: block;
-    margin-bottom: 6px;
+    display: inline-block;
+    margin: 0;
     color: #a57b4d;
-    font-size: 9px;
+    font-size: 8.5px;
     font-weight: 700;
-    letter-spacing: .17em;
+    letter-spacing: .16em;
     text-transform: uppercase;
   }
   .note-title {
     margin: 0;
     color: #514936;
     font-family: var(--serif);
-    font-size: 26px;
+    font-size: 23px;
     font-weight: 600;
-    line-height: 1.3;
+    line-height: 1.1;
     letter-spacing: -.02em;
   }
-  .note-desc {
-    max-width: 195px;
-    margin: 9px 0 0;
-    color: #8d7d5e;
-    font-size: 11.5px;
-    line-height: 1.8;
+  .note-controls {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 5px;
+    flex: 1;
+    min-width: 0;
   }
+  .note-adjust {
+    display: inline-flex;
+    align-items: center;
+    gap: 1px;
+    height: 28px;
+    padding: 1px;
+    border: 1px solid rgba(214, 198, 158, .72);
+    border-radius: 999px;
+    background: rgba(255, 252, 242, .36);
+  }
+  .note-adjust-label {
+    padding: 0 4px 0 7px;
+    color: #a29475;
+    font-size: 8.5px;
+    letter-spacing: .04em;
+  }
+  .note-step {
+    min-width: 23px;
+    height: 24px;
+    padding: 0 4px;
+    border: 0;
+    border-radius: 999px;
+    color: #7e7157;
+    background: transparent;
+    font-size: 11.5px;
+    line-height: 1;
+    cursor: pointer;
+  }
+  .note-step:hover { color: #514936; background: rgba(255, 252, 242, .72); }
+  .note-step:disabled { opacity: .28; cursor: default; background: transparent; }
+  .note-size-value {
+    min-width: 16px;
+    color: #7e7157;
+    font-size: 9.5px;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+  }
+  .note-line {
+    height: 28px;
+    padding: 0 9px;
+    border: 1px solid rgba(214, 198, 158, .72);
+    border-radius: 999px;
+    color: #7e7157;
+    background: rgba(255, 252, 242, .36);
+    font-size: 9.5px;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+  .note-line:hover { color: #514936; background: rgba(255, 252, 242, .72); }
   .note-saved {
     display: inline-flex;
     align-items: center;
     gap: 5px;
-    margin-top: auto;
-    padding-top: 14px;
+    margin: 0 0 0 2px;
+    padding: 0;
     color: #a29475;
-    font-size: 9.5px;
+    font-size: 9px;
+    white-space: nowrap;
   }
   .note-saved::before {
     content: "";
@@ -1082,31 +1144,31 @@
     border-radius: 50%;
     background: #a6b18e;
   }
-  .note-main { min-width: 0; min-height: 0; display: flex; flex-direction: column; }
+  .note-main { min-width: 0; min-height: 0; display: flex; flex-direction: column; flex: 1; }
   .note-toolbar {
     display: flex;
     align-items: center;
     flex-wrap: wrap;
-    gap: 4px;
+    gap: 2px;
     flex: none;
-    min-height: 34px;
-    margin-bottom: 7px;
+    min-height: 28px;
+    margin: 0;
   }
   .note-tool {
-    min-width: 31px;
-    height: 31px;
+    min-width: 27px;
+    height: 27px;
     display: inline-grid;
     place-items: center;
-    padding: 0 7px;
+    padding: 0 5px;
     border: 1px solid transparent;
-    border-radius: 8px;
+    border-radius: 7px;
     color: #7e7157;
     background: transparent;
     transition: background .16s ease, border-color .16s ease, color .16s ease;
   }
   .note-tool:hover { color: #514936; background: rgba(255, 252, 242, .55); border-color: rgba(214, 198, 158, .62); }
   .note-tool[aria-pressed="true"] { color: #514936; background: rgba(233, 212, 158, .58); border-color: rgba(202, 177, 118, .58); }
-  .note-tool .icon { width: 16px; height: 16px; }
+  .note-tool .icon { width: 15px; height: 15px; }
   .note-glyph {
     font-family: var(--serif);
     font-size: 16px;
@@ -1114,29 +1176,38 @@
     line-height: 1;
   }
   .note-glyph--strike { text-decoration: line-through; font-family: var(--sans); font-size: 14px; }
-  .note-toolbar-sep { width: 1px; height: 17px; margin: 0 3px; background: rgba(185, 163, 111, .36); }
-  .note-hint { margin-left: auto; color: #ad9f80; font-size: 9px; white-space: nowrap; }
+  .note-toolbar-sep { width: 1px; height: 16px; margin: 0 2px; background: rgba(185, 163, 111, .36); }
   .note-editor {
+    --note-font-size: 13px;
+    --note-line-height: 1.9;
+    --note-line-px: 24.7px;
     flex: 1 1 auto;
     min-height: 0;
-    padding: 4px 8px 3px 9px;
+    width: 100%;
+    padding: 4px 9px 5px;
     border: 1px solid transparent;
     border-radius: 10px;
     outline: none;
     color: #4e4736;
-    font-size: 13px;
-    line-height: 2.46;
+    font-size: var(--note-font-size);
+    line-height: var(--note-line-height);
+    background-image: repeating-linear-gradient(
+      to bottom,
+      transparent 0 calc(var(--note-line-px) - 1px),
+      rgba(171, 142, 83, .14) calc(var(--note-line-px) - 1px) var(--note-line-px)
+    );
+    background-attachment: local;
     word-break: break-word;
     overflow-wrap: anywhere;
     overflow-y: auto;
     overscroll-behavior: contain;
     scrollbar-width: thin;
     scrollbar-color: rgba(161, 142, 102, .35) transparent;
-    transition: border-color .18s ease, background .18s ease, box-shadow .18s ease;
+    transition: border-color .18s ease, background-color .18s ease, box-shadow .18s ease;
   }
   .note-editor:focus {
     border-color: rgba(197, 171, 113, .45);
-    background: rgba(255, 252, 241, .26);
+    background-color: rgba(255, 252, 241, .26);
     box-shadow: 0 0 0 3px rgba(201, 176, 118, .08);
   }
   .note-editor.is-empty::before {
@@ -1148,6 +1219,17 @@
   .note-editor ul, .note-editor ol { margin: 0 0 0 1.2em; padding: 0 0 0 .4em; }
   .note-editor li { padding-left: .15em; }
   .note-editor p, .note-editor div { margin: 0; }
+
+  .dashboard-pager { display: none; }
+  .dashboard-pager-dot {
+    width: 6px; height: 6px;
+    padding: 0;
+    border: 0;
+    border-radius: 999px;
+    background: rgba(167, 151, 119, .35);
+    transition: width .2s ease, background .2s ease;
+  }
+  .dashboard-pager-dot.is-active { width: 20px; background: var(--accent); }
 
   /* ---------- Footer ---------- */
   .site-footer {
@@ -1496,7 +1578,6 @@
     background: rgba(251, 247, 238, .62);
   }
   .detail-tree { display: flex; flex-direction: column; }
-  .detail-tree > .goal-branch + .goal-branch { border-top: 1px solid rgba(225, 213, 194, .65); }
   .detail-tree .goal-row { border-radius: 12px; }
   .detail-empty {
     display: flex;
@@ -2083,7 +2164,7 @@
 
   /* ---------- Responsive ---------- */
   @media (max-width: 960px) {
-    .hero { grid-template-columns: 1fr; align-items: start; gap: 28px; padding: 42px 0 34px; }
+    .hero { grid-template-columns: 1fr; grid-template-areas: "copy" "summary" "note"; align-items: start; gap: 28px; padding: 42px 0 34px; }
     .hero-desc { max-width: 620px; }
     .summary-card { width: 100%; padding: 19px 22px 17px; }
     .summary-main { gap: 18px; }
@@ -2109,16 +2190,13 @@
     .row-actions { opacity: 1; }
     .goal-row { gap: 10px; }
     .note-card {
-      grid-template-columns: 1fr;
-      grid-template-rows: auto minmax(0, 1fr);
-      height: 318px;
-      gap: 10px;
-      padding: 22px 20px 20px;
+      height: 250px;
+      padding: 20px 20px 19px;
     }
-    .note-intro { padding-left: 4px; }
-    .note-saved { margin-top: 7px; padding-top: 0; }
-    .note-toolbar { margin-bottom: 4px; }
-    .note-editor { min-height: 0; padding-left: 7px; }
+    .note-head { gap: 10px; margin-bottom: 6px; }
+    .note-controls { gap: 4px; }
+    .note-toolbar { margin: 0; }
+    .note-editor { min-height: 0; }
     .modal-header { padding: 20px 20px 0; }
     .modal-body { padding-left: 20px; padding-right: 20px; }
     .modal-footer { padding: 14px 20px calc(16px + env(safe-area-inset-bottom)); }
@@ -2141,13 +2219,40 @@
     .app-menu-btn { width: 34px; min-height: 34px; padding: 0; justify-content: center; }
     .app-menu-btn span { display: none; }
     .app-shell { padding: 0 14px 38px; }
-    .hero { padding: 28px 0 24px; gap: 22px; }
+    .hero { grid-template-areas: "copy" "board"; padding: 28px 0 18px; gap: 20px; }
     .eyebrow { margin-bottom: 14px; font-size: 9px; letter-spacing: .12em; gap: 8px; }
     .eyebrow::before { width: 18px; }
     .hero-title { font-size: clamp(30px, 9.2vw, 38px); margin-bottom: 14px; line-height: 1.2; }
     .hero-desc { font-size: 12.5px; }
-    .summary-card { padding: 16px 17px 14px; border-radius: 22px; }
-    .summary-main { gap: 14px; }
+    .dashboard-board {
+      display: flex;
+      grid-area: board;
+      gap: 12px;
+      overflow-x: auto;
+      overflow-y: hidden;
+      padding: 10px 0 6px;
+      scroll-snap-type: x mandatory;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior-x: contain;
+    }
+    .dashboard-board::-webkit-scrollbar { display: none; }
+    .dashboard-board > .summary-card,
+    .dashboard-board > .note-card {
+      flex: 0 0 100%;
+      width: 100%;
+      scroll-snap-align: start;
+      scroll-snap-stop: always;
+    }
+    .dashboard-pager {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin: -4px 0 20px;
+    }
+    .summary-card { display: flex; flex-direction: column; padding: 16px 17px 14px; border-radius: 22px; }
+    .summary-main { flex: 1; align-items: center; gap: 14px; }
     .progress-ring { width: 86px; }
     .ring-inner strong { font-size: 25px; }
     .summary-label { font-size: 11px; }
@@ -2160,11 +2265,15 @@
     .section-actions .btn-primary { width: 100%; min-height: 42px; grid-column: 1 / -1; }
     .section-actions .btn-ghost { min-height: 38px; }
     .section-sub { font-size: 11px; }
-    .note-card { height: 298px; padding: 20px 16px 18px; margin-bottom: 30px; border-radius: 20px; }
+    .note-card { height: 320px; padding: 16px 16px 18px; margin-bottom: 0; border-radius: 20px; }
     .note-card::before { width: 74px; height: 18px; }
-    .note-title { font-size: 23px; }
-    .note-hint { display: none; }
-    .note-editor { font-size: 12.5px; line-height: 2.56; min-height: 0; }
+    .note-head { flex-direction: column; align-items: stretch; gap: 7px; margin-bottom: 6px; }
+    .note-heading { width: 100%; }
+    .note-controls { width: 100%; justify-content: space-between; gap: 3px; }
+    .note-title { font-size: 22px; }
+    .note-saved { display: none; }
+    .note-adjust { padding-left: 2px; }
+    .note-adjust-label { display: none; }
     .goal-branch.is-root { border-radius: 20px; }
     .goal-branch.is-root > .goal-row { padding: 16px 14px 14px; gap: 9px; }
     .goal-branch.is-root > .goal-children { padding: 4px 14px 11px 33px; }
@@ -2378,64 +2487,82 @@
         <p class="hero-desc">用一棵无限层级的目标树，拆解想做的事。勾选或计数子目标，<b>主目标会自动汇总进度</b>；每一次微小的前进，都被认真记录。</p>
       </div>
 
-      <aside class="summary-card" aria-labelledby="summary-label">
-        <div class="summary-main">
-          <div class="progress-ring" id="overall-ring" role="progressbar" aria-labelledby="summary-label" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" style="--p:0%">
-            <div class="ring-inner">
-              <strong id="overall-percent">0</strong><span>%</span>
+      <div class="dashboard-board" id="dashboard-board">
+        <aside class="summary-card" aria-labelledby="summary-label">
+          <div class="summary-main">
+            <div class="progress-ring" id="overall-ring" role="progressbar" aria-labelledby="summary-label" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" style="--p:0%">
+              <div class="ring-inner">
+                <strong id="overall-percent">0</strong><span>%</span>
+              </div>
+            </div>
+            <div class="summary-copy">
+              <div class="summary-label" id="summary-label">整体完成度</div>
+              <p class="summary-note" id="summary-note">添加目标后开始记录</p>
             </div>
           </div>
-          <div class="summary-copy">
-            <div class="summary-label" id="summary-label">整体完成度</div>
-            <p class="summary-note" id="summary-note">添加目标后开始记录</p>
+          <div class="summary-stats">
+            <div class="stat">
+              <span class="stat-label">小目标达成</span>
+              <span class="stat-value"><strong id="stat-done">0</strong><span class="stat-denom">/<span id="stat-total">0</span></span></span>
+            </div>
+            <div class="stat">
+              <span class="stat-label">进行中</span>
+              <span class="stat-value"><strong id="stat-active">0</strong></span>
+            </div>
+            <div class="stat">
+              <span class="stat-label">主目标</span>
+              <span class="stat-value"><strong id="stat-roots">0</strong></span>
+            </div>
           </div>
-        </div>
-        <div class="summary-stats">
-          <div class="stat">
-            <span class="stat-label">小目标达成</span>
-            <span class="stat-value"><strong id="stat-done">0</strong><span class="stat-denom">/<span id="stat-total">0</span></span></span>
+        </aside>
+
+        <section class="note-card" aria-labelledby="note-title">
+          <div class="note-head">
+            <div class="note-heading">
+              <span class="note-kicker">Scratchpad</span>
+              <h2 class="note-title" id="note-title">便签</h2>
+            </div>
+            <div class="note-controls">
+              <div class="note-adjust" role="group" aria-label="便签字号">
+                <span class="note-adjust-label">字号</span>
+                <button class="note-step" type="button" data-note-font="-1" aria-label="缩小便签字号">A−</button>
+                <span class="note-size-value" id="note-font-value">13</span>
+                <button class="note-step" type="button" data-note-font="1" aria-label="增大便签字号">A+</button>
+              </div>
+              <button class="note-line" id="note-line-btn" type="button" aria-label="切换便签行距">行距 · 标准</button>
+              <span class="note-toolbar-sep" aria-hidden="true"></span>
+              <div class="note-toolbar" id="note-toolbar" role="toolbar" aria-label="便签格式">
+                <button class="note-tool" type="button" data-note-command="bold" aria-label="加粗" title="加粗" aria-pressed="false">
+                  <span class="note-glyph" aria-hidden="true">B</span>
+                </button>
+                <button class="note-tool" type="button" data-note-command="highlight" aria-label="文字高亮" title="文字高亮" aria-pressed="false">
+                  <svg class="icon" aria-hidden="true"><use href="#i-highlight"></use></svg>
+                </button>
+                <button class="note-tool" type="button" data-note-command="strike" aria-label="删除线" title="删除线" aria-pressed="false">
+                  <span class="note-glyph note-glyph--strike" aria-hidden="true">S</span>
+                </button>
+                <span class="note-toolbar-sep" aria-hidden="true"></span>
+                <button class="note-tool" type="button" data-note-command="ul" aria-label="无序列表" title="无序列表" aria-pressed="false">
+                  <svg class="icon" aria-hidden="true"><use href="#i-list"></use></svg>
+                </button>
+                <button class="note-tool" type="button" data-note-command="ol" aria-label="有序列表" title="有序列表" aria-pressed="false">
+                  <svg class="icon" aria-hidden="true"><use href="#i-list-ordered"></use></svg>
+                </button>
+              </div>
+              <span class="note-saved">自动保存</span>
+            </div>
           </div>
-          <div class="stat">
-            <span class="stat-label">进行中</span>
-            <span class="stat-value"><strong id="stat-active">0</strong></span>
+          <div class="note-main">
+            <div class="note-editor is-empty" id="note-editor" contenteditable="true" role="textbox" aria-multiline="true" aria-label="便签内容" data-placeholder="写下今日提醒、灵感，或给自己的话…" spellcheck="true"></div>
           </div>
-          <div class="stat">
-            <span class="stat-label">主目标</span>
-            <span class="stat-value"><strong id="stat-roots">0</strong></span>
-          </div>
-        </div>
-      </aside>
+        </section>
+      </div>
     </section>
 
-    <section class="note-card" aria-labelledby="note-title">
-      <div class="note-intro">
-        <span class="note-kicker">Scratchpad</span>
-        <h2 class="note-title" id="note-title">便签</h2>
-        <span class="note-saved">本地自动保存</span>
-      </div>
-      <div class="note-main">
-        <div class="note-toolbar" id="note-toolbar" role="toolbar" aria-label="便签格式">
-          <button class="note-tool" type="button" data-note-command="bold" aria-label="加粗" title="加粗" aria-pressed="false">
-            <span class="note-glyph" aria-hidden="true">B</span>
-          </button>
-          <button class="note-tool" type="button" data-note-command="highlight" aria-label="文字高亮" title="文字高亮" aria-pressed="false">
-            <svg class="icon" aria-hidden="true"><use href="#i-highlight"></use></svg>
-          </button>
-          <button class="note-tool" type="button" data-note-command="strike" aria-label="删除线" title="删除线" aria-pressed="false">
-            <span class="note-glyph note-glyph--strike" aria-hidden="true">S</span>
-          </button>
-          <span class="note-toolbar-sep" aria-hidden="true"></span>
-          <button class="note-tool" type="button" data-note-command="ul" aria-label="无序列表" title="无序列表" aria-pressed="false">
-            <svg class="icon" aria-hidden="true"><use href="#i-list"></use></svg>
-          </button>
-          <button class="note-tool" type="button" data-note-command="ol" aria-label="有序列表" title="有序列表" aria-pressed="false">
-            <svg class="icon" aria-hidden="true"><use href="#i-list-ordered"></use></svg>
-          </button>
-          <span class="note-hint">选中文字后使用格式</span>
-        </div>
-        <div class="note-editor is-empty" id="note-editor" contenteditable="true" role="textbox" aria-multiline="true" aria-label="便签内容" data-placeholder="写下今日提醒、灵感，或给自己的话…" spellcheck="true"></div>
-      </div>
-    </section>
+    <div class="dashboard-pager" id="dashboard-pager" aria-label="首页卡片切换">
+      <button class="dashboard-pager-dot is-active" type="button" data-dashboard-index="0" aria-label="整体完成度" aria-current="true"></button>
+      <button class="dashboard-pager-dot" type="button" data-dashboard-index="1" aria-label="便签"></button>
+    </div>
 
     <section aria-labelledby="goals-heading">
       <div class="section-head">
@@ -2682,7 +2809,7 @@
         <div class="sync-section">
           <div class="sync-field">
             <label for="sync-lan-url">局域网服务地址</label>
-            <input class="text-input" id="sync-lan-url" type="url" autocomplete="url" placeholder="http://192.168.1.10:8787">
+            <input class="text-input" id="sync-lan-url" type="url" autocomplete="url" placeholder="https://192-168-1-10.my.local-ip.co:8788">
           </div>
           <div class="sync-field">
             <label for="sync-lan-room">同步口令</label>
@@ -2693,7 +2820,7 @@
             <span class="sync-switch" aria-hidden="true"></span>
             <span>自动同步（每 60 秒）</span>
           </label>
-          <p class="sync-hint">在局域网中的任意电脑运行 <code>python lan-sync-server.py</code>，再将上面的地址改成那台电脑的局域网 IP。口令相同的设备会同步到同一份数据；请仅在可信局域网中使用。</p>
+          <p class="sync-hint">在局域网中的任意电脑运行 <code>python lan-sync-server.py</code>，再把地址改成那台电脑的局域网 IP。iPhone Safari 从 GitHub Pages（HTTPS）打开时，必须填写服务器启动时打印的 <code>https://192-168-1-10.my.local-ip.co:8788</code> 形式地址；<code>http://</code> 地址会被 Safari 当作混合内容拦截。首次使用时 iPhone 可能询问是否允许访问本地网络，请选择允许；若曾拒绝，可在“设置 → 隐私与安全性 → 本地网络”中开启 Safari。口令相同的设备会同步到同一份数据，请仅在可信局域网中使用。</p>
         </div>
         <div class="sync-actions">
           <button class="btn btn-ghost" type="button" data-sync-action="test">测试连接</button>
@@ -2952,7 +3079,7 @@
   const state = {
     goals: [],
     noteHtml: '',
-    prefs: { viewMode: 'single', progressMode: 'bar' },
+    prefs: { viewMode: 'single', progressMode: 'bar', noteFontSize: 13, noteLineHeight: 1.9 },
     updatedAt: 0
   };
   const ui = {
@@ -3034,6 +3161,8 @@
           if (parsed.prefs && typeof parsed.prefs === 'object') {
             state.prefs.viewMode = normalizeViewMode(parsed.prefs.viewMode);
             state.prefs.progressMode = parsed.prefs.progressMode === 'tint' ? 'tint' : 'bar';
+            state.prefs.noteFontSize = normalizeNoteFontSize(parsed.prefs.noteFontSize);
+            state.prefs.noteLineHeight = normalizeNoteLineHeight(parsed.prefs.noteLineHeight);
           }
         }
         restored = true;
@@ -3052,6 +3181,8 @@
     if (!ui.storageFailed) setSaveStatus(restored ? 'loaded' : 'idle');
     render();
     renderNote();
+    applyNotePreferences();
+    setupDashboardBoard();
     requestAnimationFrame(() => document.body.classList.add('is-ready'));
   }
 
@@ -3103,6 +3234,10 @@
       detailBody: $('.detail-body', $('#detail-modal')),
       noteEditor: $('#note-editor'),
       noteToolbar: $('#note-toolbar'),
+      noteFontValue: $('#note-font-value'),
+      noteLineBtn: $('#note-line-btn'),
+      dashboardBoard: $('#dashboard-board'),
+      dashboardPager: $('#dashboard-pager'),
       overallRing: $('#overall-ring'),
       overallPercent: $('#overall-percent'),
       summaryNote: $('#summary-note'),
@@ -3868,6 +4003,65 @@
   /* ------------------------------------------------------------
      Sticky note
   ------------------------------------------------------------ */
+  const NOTE_FONT_MIN = 12;
+  const NOTE_FONT_MAX = 18;
+  const NOTE_LINE_MODES = [
+    { value: 1.6, label: '紧凑' },
+    { value: 1.9, label: '标准' },
+    { value: 2.2, label: '宽松' }
+  ];
+
+  function normalizeNoteFontSize(value) {
+    const size = Math.round(Number(value));
+    if (!Number.isFinite(size)) return 13;
+    return clamp(size, NOTE_FONT_MIN, NOTE_FONT_MAX);
+  }
+
+  function normalizeNoteLineHeight(value) {
+    const height = Number(value);
+    if (!Number.isFinite(height)) return 1.9;
+    return NOTE_LINE_MODES.reduce((best, mode) => (
+      Math.abs(mode.value - height) < Math.abs(best.value - height) ? mode : best
+    ), NOTE_LINE_MODES[1]).value;
+  }
+
+  function applyNotePreferences() {
+    if (!els.noteEditor) return;
+    const size = normalizeNoteFontSize(state.prefs.noteFontSize);
+    const lineHeight = normalizeNoteLineHeight(state.prefs.noteLineHeight);
+    state.prefs.noteFontSize = size;
+    state.prefs.noteLineHeight = lineHeight;
+    els.noteEditor.style.setProperty('--note-font-size', size + 'px');
+    els.noteEditor.style.setProperty('--note-line-height', String(lineHeight));
+    els.noteEditor.style.setProperty('--note-line-px', (size * lineHeight).toFixed(2) + 'px');
+    if (els.noteFontValue) els.noteFontValue.textContent = String(size);
+    const lineMode = NOTE_LINE_MODES.find((mode) => mode.value === lineHeight) || NOTE_LINE_MODES[1];
+    if (els.noteLineBtn) {
+      els.noteLineBtn.textContent = '行距 · ' + lineMode.label;
+      els.noteLineBtn.setAttribute('aria-label', '当前行距' + lineMode.label + '，点击切换');
+    }
+    $$('[data-note-font]').forEach((button) => {
+      const delta = Number(button.dataset.noteFont);
+      button.disabled = (delta < 0 && size <= NOTE_FONT_MIN) || (delta > 0 && size >= NOTE_FONT_MAX);
+    });
+  }
+
+  function changeNoteFont(delta) {
+    const next = normalizeNoteFontSize(state.prefs.noteFontSize + delta);
+    if (next === state.prefs.noteFontSize) return;
+    state.prefs.noteFontSize = next;
+    applyNotePreferences();
+    scheduleSave();
+  }
+
+  function cycleNoteLineHeight() {
+    const current = normalizeNoteLineHeight(state.prefs.noteLineHeight);
+    const index = Math.max(0, NOTE_LINE_MODES.findIndex((mode) => mode.value === current));
+    state.prefs.noteLineHeight = NOTE_LINE_MODES[(index + 1) % NOTE_LINE_MODES.length].value;
+    applyNotePreferences();
+    scheduleSave();
+  }
+
   function setupNoteEditor() {
     if (!els.noteEditor) return;
     els.noteEditor.addEventListener('input', syncNoteFromEditor);
@@ -3876,6 +4070,10 @@
     els.noteEditor.addEventListener('mouseup', updateNoteToolbarState);
     els.noteEditor.addEventListener('focus', updateNoteToolbarState);
     els.noteEditor.addEventListener('blur', () => requestAnimationFrame(updateNoteToolbarState));
+    $$('[data-note-font]').forEach((button) => {
+      button.addEventListener('click', () => changeNoteFont(Number(button.dataset.noteFont) || 0));
+    });
+    if (els.noteLineBtn) els.noteLineBtn.addEventListener('click', cycleNoteLineHeight);
   }
 
   function renderNote() {
@@ -5063,6 +5261,60 @@
     return mode === 'double' || mode === 'kanban' ? mode : 'single';
   }
 
+  function setupDashboardBoard() {
+    const board = els.dashboardBoard;
+    if (!board || board.dataset.dashboardBound === '1') return;
+    board.dataset.dashboardBound = '1';
+    let ticking = false;
+    const queueUpdate = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        ticking = false;
+        updateDashboardPager();
+      });
+    };
+    board.addEventListener('scroll', queueUpdate, { passive: true });
+    window.addEventListener('resize', queueUpdate, { passive: true });
+    if (els.dashboardPager) {
+      els.dashboardPager.addEventListener('click', (event) => {
+        const button = event.target.closest('[data-dashboard-index]');
+        if (!button) return;
+        const index = Number(button.dataset.dashboardIndex);
+        const card = board.children[index];
+        if (!card) return;
+        const boardRect = board.getBoundingClientRect();
+        const cardRect = card.getBoundingClientRect();
+        board.scrollTo({
+          left: board.scrollLeft + cardRect.left - boardRect.left,
+          behavior: 'smooth'
+        });
+      });
+    }
+    queueUpdate();
+  }
+
+  function updateDashboardPager() {
+    const board = els.dashboardBoard;
+    if (!board || !els.dashboardPager) return;
+    const boardRect = board.getBoundingClientRect();
+    let active = 0;
+    let best = Infinity;
+    Array.from(board.children).forEach((card, index) => {
+      const distance = Math.abs(card.getBoundingClientRect().left - boardRect.left);
+      if (distance < best) {
+        best = distance;
+        active = index;
+      }
+    });
+    $$('[data-dashboard-index]', els.dashboardPager).forEach((button) => {
+      const isActive = Number(button.dataset.dashboardIndex) === active;
+      button.classList.toggle('is-active', isActive);
+      if (isActive) button.setAttribute('aria-current', 'true');
+      else button.removeAttribute('aria-current');
+    });
+  }
+
   function setViewMode(mode) {
     const next = normalizeViewMode(mode);
     if (state.prefs.viewMode === next) return;
@@ -5638,6 +5890,12 @@
     return buildLanUrl('/api/sync?room=' + encodeURIComponent(syncConfig.lan.room || ''));
   }
 
+  function ensureLanTransport() {
+    if (window.location.protocol === 'https:' && /^http:\/\//i.test((syncConfig.lan.url || '').trim())) {
+      throw new Error('当前网页是 HTTPS，浏览器会拦截对 HTTP 局域网地址的请求（Safari 显示 Load failed）。请改用服务器打印的 https://<局域网IP>.my.local-ip.co:8788 地址。');
+    }
+  }
+
   async function fetchWithTimeout(url, options, timeout) {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeout || 20000);
@@ -5738,6 +5996,7 @@
 
   async function testRemoteConnection() {
     if (syncConfig.mode === 'lan') {
+      ensureLanTransport();
       const response = await fetchWithTimeout(buildLanUrl('/api/health'), { method: 'GET' }, 12000);
       if (!response.ok) throw new Error(httpStatusMessage(response.status));
       return '局域网同步服务连接成功';
@@ -5750,6 +6009,7 @@
 
   async function readRemotePayload() {
     if (syncConfig.mode === 'lan') {
+      ensureLanTransport();
       const response = await fetchWithTimeout(lanSyncUrl(), { method: 'GET', headers: { Accept: 'application/json' } }, 15000);
       if (response.status === 404) return null;
       if (!response.ok) throw new Error(httpStatusMessage(response.status));
@@ -5775,6 +6035,7 @@
   async function writeRemotePayload(payload) {
     const body = JSON.stringify(payload);
     if (syncConfig.mode === 'lan') {
+      ensureLanTransport();
       const response = await fetchWithTimeout(lanSyncUrl(), {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json;charset=utf-8', Accept: 'application/json' },
@@ -5808,7 +6069,9 @@
       noteHtml: sanitizeNoteHtml(typeof raw.noteHtml === 'string' ? raw.noteHtml : ''),
       prefs: {
         viewMode: normalizeViewMode(prefs.viewMode),
-        progressMode: prefs.progressMode === 'tint' ? 'tint' : 'bar'
+        progressMode: prefs.progressMode === 'tint' ? 'tint' : 'bar',
+        noteFontSize: normalizeNoteFontSize(prefs.noteFontSize),
+        noteLineHeight: normalizeNoteLineHeight(prefs.noteLineHeight)
       },
       updatedAt: Number(raw.updatedAt) || 0
     };
@@ -5825,6 +6088,7 @@
     persist({ timestamp: state.updatedAt });
     render();
     renderNote();
+    applyNotePreferences();
     if (!options || !options.silent) showToast('已从远程同步最新数据');
   }
 
@@ -5997,11 +6261,14 @@
         if (data.prefs && typeof data.prefs === 'object') {
           state.prefs.viewMode = normalizeViewMode(data.prefs.viewMode);
           state.prefs.progressMode = data.prefs.progressMode === 'tint' ? 'tint' : 'bar';
+          state.prefs.noteFontSize = normalizeNoteFontSize(data.prefs.noteFontSize);
+          state.prefs.noteLineHeight = normalizeNoteLineHeight(data.prefs.noteLineHeight);
         }
       }
       scheduleSave(true);
       render();
       renderNote();
+      applyNotePreferences();
       showToast(forest.length ? '成功导入 ' + forest.length + ' 个主目标' : '便签内容已导入');
     } catch (error) {
       console.warn('导入失败', error);
